@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+  build:
+    commands:
+      - echo Gerando backend/.env
+      - bash scripts/gen-env.sh
+      - echo Backend admin
+      - cd backend
+      - npm ci
+      - cd ..
+      - echo Frontend admin build
+      - cd frontend
+      - npm ci
+      - npm run build
+      - cd ..
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: .
