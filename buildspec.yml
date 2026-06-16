@@ -14,7 +14,7 @@ phases:
       - cd ..
       - echo Frontend admin build
       - cd frontend
-      - npm ci
+      - npm ci --legacy-peer-deps
       - npm run build
       - cd ..
 
