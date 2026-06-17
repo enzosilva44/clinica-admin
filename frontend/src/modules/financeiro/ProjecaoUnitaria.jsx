@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import {
-  ticketMedio, mrr, custosVariaveis, margemBruta,
+  ticketMedio, receitaTotal, custosVariaveis, margemBruta,
   totalCustosFixos, ebitda, ebitdaPct,
+  caixaMinimo, lucroDisponivel,
 } from "./calculadora";
 
 const fmt = (n) =>
@@ -22,12 +23,14 @@ export default function ProjecaoUnitaria({ premissas }) {
       const n = i + 1;
       return {
         n,
-        receita: mrr(premissas, n),
+        receita: receitaTotal(premissas, n),
         custosVar: custosVariaveis(premissas, n),
         receitaLiquida: margemBruta(premissas, n),
         custoFixo: fixo,
         resultado: ebitda(premissas, n),
         margem: ebitdaPct(premissas, n),
+        caixaMin: caixaMinimo(premissas, n),
+        disponivel: lucroDisponivel(premissas, n),
       };
     });
   }, [premissas, limite]);
@@ -73,6 +76,8 @@ export default function ProjecaoUnitaria({ premissas }) {
               <th className="text-right px-4 py-2.5">Custo Fixo Total</th>
               <th className="text-right px-4 py-2.5">Resultado</th>
               <th className="text-center px-4 py-2.5">Margem</th>
+              <th className="text-right px-4 py-2.5">Caixa mín.</th>
+              <th className="text-right px-4 py-2.5">Disponível</th>
             </tr>
           </thead>
           <tbody>
@@ -88,6 +93,8 @@ export default function ProjecaoUnitaria({ premissas }) {
                   <td className="px-4 py-2.5 text-right text-gray-500">{fmt(l.custoFixo)}</td>
                   <td className={`px-4 py-2.5 text-right font-semibold ${corRes}`}>{fmt(l.resultado)}</td>
                   <td className={`px-4 py-2.5 text-center font-bold ${corRes}`}>{pct(l.margem)}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(l.caixaMin)}</td>
+                  <td className="px-4 py-2.5 text-right font-medium text-[#00704A]">{l.disponivel > 0 ? fmt(l.disponivel) : "—"}</td>
                 </tr>
               );
             })}
