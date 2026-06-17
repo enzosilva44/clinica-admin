@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import {
-  ticketMedio, receitaTotal, custosVariaveis, margemBruta,
-  totalCustosFixos, ebitda, ebitdaPct,
-  caixaMinimo, lucroDisponivel,
+  ticketMedio, mrr, revShareAsaas, receitaTotal, custosVariaveis,
+  totalCustosFixos, ebitda, ebitdaPct, caixaMinimo, lucroDisponivel,
 } from "./calculadora";
 
 const fmt = (n) =>
@@ -12,7 +11,7 @@ const pct = (n) => `${(n * 100).toFixed(1)}%`;
 const MAX_LIMITE = 1000;
 
 // Tabela de projeção cliente a cliente (1 até o limite escolhido).
-// Reage automaticamente quando qualquer premissa muda, pois deriva tudo do motor.
+// Agrupada em CUSTOS | RECEITA | RESULTADO. Reage a qualquer premissa.
 export default function ProjecaoUnitaria({ premissas }) {
   const [limite, setLimite] = useState(10);
 
@@ -21,12 +20,17 @@ export default function ProjecaoUnitaria({ premissas }) {
     const fixo = totalCustosFixos(premissas);
     return Array.from({ length: qtd }, (_, i) => {
       const n = i + 1;
+      const custoVar = custosVariaveis(premissas, n);
+      const assinaturas = mrr(premissas, n);
+      const asaas = revShareAsaas(premissas, n);
       return {
         n,
-        receita: receitaTotal(premissas, n),
-        custosVar: custosVariaveis(premissas, n),
-        receitaLiquida: margemBruta(premissas, n),
+        custoVar,
         custoFixo: fixo,
+        custoTotal: custoVar + fixo,
+        assinaturas,
+        asaas,
+        receitaTot: receitaTotal(premissas, n),
         resultado: ebitda(premissas, n),
         margem: ebitdaPct(premissas, n),
         caixaMin: caixaMinimo(premissas, n),
@@ -36,11 +40,15 @@ export default function ProjecaoUnitaria({ premissas }) {
   }, [premissas, limite]);
 
   const PRESETS = [10, 25, 50, 100];
+  const limiteAtual = Math.min(Math.max(1, limite || 1), MAX_LIMITE);
+
+  const th = "px-3 py-2 font-medium";
+  const td = "px-3 py-2.5 text-right tabular-nums";
 
   return (
     <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
       <div className="px-5 py-3 border-b border-[#E6E2D8] bg-[#F2F0EB] flex flex-wrap items-center justify-between gap-3">
-        <span className="text-sm font-bold text-[#00704A]">Projeção por cliente (1 a {Math.min(Math.max(1, limite || 1), MAX_LIMITE)})</span>
+        <span className="text-sm font-bold text-[#00704A]">Projeção por cliente (1 a {limiteAtual})</span>
         <div className="flex items-center gap-3">
           <span className="text-[11px] text-gray-400">Ticket médio {fmt(ticketMedio(premissas))}</span>
           <div className="flex items-center gap-1.5">
@@ -67,17 +75,26 @@ export default function ProjecaoUnitaria({ premissas }) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[#FAFAF9] text-[10px] text-gray-400 uppercase tracking-wide">
-            <tr>
-              <th className="text-left px-4 py-2.5">Clientes</th>
-              <th className="text-right px-4 py-2.5">Receita Bruta</th>
-              <th className="text-right px-4 py-2.5">Custos Variáveis</th>
-              <th className="text-right px-4 py-2.5">Receita Líquida</th>
-              <th className="text-right px-4 py-2.5">Custo Fixo Total</th>
-              <th className="text-right px-4 py-2.5">Resultado</th>
-              <th className="text-center px-4 py-2.5">Margem</th>
-              <th className="text-right px-4 py-2.5">Caixa mín.</th>
-              <th className="text-right px-4 py-2.5">Disponível</th>
+          {/* Linha de grupos */}
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wide text-white">
+              <th className="bg-[#00704A] px-3 py-1.5" rowSpan={2}>Clientes</th>
+              <th className="bg-red-500/90 px-3 py-1.5 border-l border-white/20" colSpan={3}>Custos</th>
+              <th className="bg-[#00704A] px-3 py-1.5 border-l border-white/20" colSpan={3}>Receita</th>
+              <th className="bg-[#1E3932] px-3 py-1.5 border-l border-white/20" colSpan={4}>Resultado</th>
+            </tr>
+            {/* Linha de colunas */}
+            <tr className="bg-[#FAFAF9] text-[10px] text-gray-400 uppercase tracking-wide">
+              <th className={`${th} text-right border-l border-[#E6E2D8]`}>Variável</th>
+              <th className={`${th} text-right`}>Fixo</th>
+              <th className={`${th} text-right`}>Total</th>
+              <th className={`${th} text-right border-l border-[#E6E2D8]`}>Assin. (MRR)</th>
+              <th className={`${th} text-right`}>Asaas</th>
+              <th className={`${th} text-right`}>Total</th>
+              <th className={`${th} text-right border-l border-[#E6E2D8]`}>EBITDA</th>
+              <th className={`${th} text-center`}>Margem</th>
+              <th className={`${th} text-right`}>Caixa mín.</th>
+              <th className={`${th} text-right`}>Disponível</th>
             </tr>
           </thead>
           <tbody>
@@ -85,21 +102,29 @@ export default function ProjecaoUnitaria({ premissas }) {
               const pos = l.resultado >= 0;
               const corRes = pos ? "text-green-600" : "text-red-500";
               return (
-                <tr key={l.n} className="border-t border-[#E6E2D8]">
-                  <td className="px-4 py-2.5 font-medium text-[#00704A]">{l.n}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-600">{fmt(l.receita)}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(l.custosVar)}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-600">{fmt(l.receitaLiquida)}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(l.custoFixo)}</td>
-                  <td className={`px-4 py-2.5 text-right font-semibold ${corRes}`}>{fmt(l.resultado)}</td>
-                  <td className={`px-4 py-2.5 text-center font-bold ${corRes}`}>{pct(l.margem)}</td>
-                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(l.caixaMin)}</td>
-                  <td className="px-4 py-2.5 text-right font-medium text-[#00704A]">{l.disponivel > 0 ? fmt(l.disponivel) : "—"}</td>
+                <tr key={l.n} className="border-t border-[#E6E2D8] hover:bg-[#F2F0EB]/50">
+                  <td className="px-3 py-2.5 font-semibold text-[#00704A] text-center">{l.n}</td>
+                  {/* Custos */}
+                  <td className={`${td} text-gray-500 border-l border-[#E6E2D8]`}>{fmt(l.custoVar)}</td>
+                  <td className={`${td} text-gray-500`}>{fmt(l.custoFixo)}</td>
+                  <td className={`${td} font-medium text-gray-700`}>{fmt(l.custoTotal)}</td>
+                  {/* Receita */}
+                  <td className={`${td} text-gray-600 border-l border-[#E6E2D8]`}>{fmt(l.assinaturas)}</td>
+                  <td className={`${td} text-gray-500`}>{fmt(l.asaas)}</td>
+                  <td className={`${td} font-medium text-gray-700`}>{fmt(l.receitaTot)}</td>
+                  {/* Resultado */}
+                  <td className={`${td} font-semibold ${corRes} border-l border-[#E6E2D8]`}>{fmt(l.resultado)}</td>
+                  <td className={`px-3 py-2.5 text-center font-bold ${corRes}`}>{pct(l.margem)}</td>
+                  <td className={`${td} text-gray-500`}>{fmt(l.caixaMin)}</td>
+                  <td className={`${td} font-medium text-[#00704A]`}>{l.disponivel > 0 ? fmt(l.disponivel) : "—"}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+      </div>
+      <div className="px-5 py-2.5 border-t border-[#E6E2D8] bg-[#FAFAF9] text-[11px] text-gray-400">
+        <span className="font-medium text-gray-500">Disponível</span> = quanto sobra do EBITDA para distribuir entre os sócios, depois de reservar o caixa mínimo e a provisão de impostos.
       </div>
     </div>
   );
