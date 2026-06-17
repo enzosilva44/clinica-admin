@@ -52,15 +52,15 @@ export default function MentionTextarea({ value, onChange, onBlur, onEnter, team
   return (
     <div className="relative">
       {suggestions.length > 0 && (
-        <div className="absolute bottom-full left-0 mb-1 bg-white border border-[#E8E0D2] rounded-xl shadow-lg z-20 min-w-44 overflow-hidden">
+        <div className="absolute bottom-full left-0 mb-1 bg-white border border-[#E6E2D8] rounded-xl shadow-lg z-20 min-w-44 overflow-hidden">
           {suggestions.map((m) => (
             <button
               key={m.id}
               onMouseDown={(e) => { e.preventDefault(); insertMention(m.name); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#F5F1EA] transition text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#F2F0EB] transition text-left"
             >
               <Avatar name={m.name} size={5} />
-              <span className="font-medium text-[#1F4D46]">{m.name}</span>
+              <span className="font-medium text-[#00704A]">{m.name}</span>
             </button>
           ))}
         </div>

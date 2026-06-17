@@ -5,6 +5,7 @@ import Tasks from "../pages/Tasks";
 import Financeiro from "../pages/Financeiro";
 import CustomerSuccess from "../pages/CustomerSuccess";
 import Comercial from "../pages/Comercial";
+import PlanejamentoSandbox from "../modules/financeiro/PlanejamentoSandbox";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("admin_token");
@@ -28,6 +29,7 @@ export default function AppRoutes() {
       <Route path="/financial" element={<P><Financeiro /></P>} />
       <Route path="/cs"        element={<P><CustomerSuccess /></P>} />
       <Route path="/comercial" element={<P><Comercial /></P>} />
+      <Route path="/planejamento" element={<P><PlanejamentoSandbox /></P>} />
       <Route path="*"          element={<Navigate to="/" replace />} />
     </Routes>
   );

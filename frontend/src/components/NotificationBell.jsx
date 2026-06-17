@@ -70,26 +70,26 @@ export default function NotificationBell({ onTaskOpen }) {
       >
         <Bell size={16} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#C4895A] rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#CBA258] rounded-full text-[9px] font-bold text-white flex items-center justify-center">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-2xl border border-[#E8E0D2] z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EBE3]">
-            <span className="text-sm font-bold text-[#1F4D46]">
-              Notificações {unread > 0 && <span className="text-[#C4895A]">({unread})</span>}
+        <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-2xl border border-[#E6E2D8] z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E6E2D8]">
+            <span className="text-sm font-bold text-[#00704A]">
+              Notificações {unread > 0 && <span className="text-[#CBA258]">({unread})</span>}
             </span>
             {unread > 0 && (
-              <button onClick={markAll} className="text-xs text-gray-400 hover:text-[#1F4D46] flex items-center gap-1 transition">
+              <button onClick={markAll} className="text-xs text-gray-400 hover:text-[#00704A] flex items-center gap-1 transition">
                 <CheckCheck size={12} /> Marcar todas
               </button>
             )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-[#F5F1EA]">
+          <div className="max-h-80 overflow-y-auto divide-y divide-[#F2F0EB]">
             {notifs.length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-8">Nenhuma notificação.</p>
             ) : (
@@ -97,12 +97,12 @@ export default function NotificationBell({ onTaskOpen }) {
                 <button
                   key={n.id}
                   onClick={() => handleClick(n)}
-                  className={`w-full text-left px-4 py-3 hover:bg-[#F5F1EA] transition flex items-start gap-2.5 ${!n.read ? "bg-[#FDFAF5]" : ""}`}
+                  className={`w-full text-left px-4 py-3 hover:bg-[#F2F0EB] transition flex items-start gap-2.5 ${!n.read ? "bg-[#F2F0EB]" : ""}`}
                 >
-                  {!n.read && <span className="w-2 h-2 bg-[#C4895A] rounded-full shrink-0 mt-1" />}
+                  {!n.read && <span className="w-2 h-2 bg-[#CBA258] rounded-full shrink-0 mt-1" />}
                   {n.read  && <span className="w-2 h-2 shrink-0 mt-1" />}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${!n.read ? "font-semibold text-[#1F4D46]" : "text-gray-600"}`}>
+                    <p className={`text-sm leading-snug ${!n.read ? "font-semibold text-[#00704A]" : "text-gray-600"}`}>
                       {n.content}
                     </p>
                     {n.taskTitle && (

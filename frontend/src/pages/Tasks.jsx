@@ -4,6 +4,7 @@ import {
   Bell, Calendar, ChevronRight, User, Users,
 } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import SecaoInfo from "../components/SecaoInfo";
 import MentionTextarea from "../components/MentionTextarea";
 import AvatarComp from "../components/Avatar";
 import adminApi from "../services/api";
@@ -155,7 +156,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               onBlur={() => save({ title: form.title })}
-              className="w-full text-base font-bold text-[#1F4D46] bg-transparent focus:outline-none focus:border-b focus:border-[#1F4D46]"
+              className="w-full text-base font-bold text-[#00704A] bg-transparent focus:outline-none focus:border-b focus:border-[#00704A]"
             />
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${PRIORITY_CFG[form.priority]?.color}`}>
@@ -185,12 +186,12 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
               <div className="relative">
                 <button
                   onClick={() => setShowTeam((v) => !v)}
-                  className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#1F4D46] hover:text-[#1F4D46] transition"
+                  className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#00704A] hover:text-[#00704A] transition"
                 >
                   <Plus size={10} />
                 </button>
                 {showTeam && (
-                  <div className="absolute left-0 top-8 z-10 bg-white border border-[#E8E0D2] rounded-xl shadow-lg p-2 min-w-44">
+                  <div className="absolute left-0 top-8 z-10 bg-white border border-[#E6E2D8] rounded-xl shadow-lg p-2 min-w-44">
                     {team.length === 0 && <p className="text-xs text-gray-400 px-2">Nenhum usuário admin.</p>}
                     {team.map((m) => {
                       const active = assignees.find((a) => a.id === m.id);
@@ -198,11 +199,11 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
                         <button
                           key={m.id}
                           onClick={() => { toggleAssignee(m); setShowTeam(false); }}
-                          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm transition ${active ? "bg-[#F0F7F5] text-[#1F4D46]" : "hover:bg-gray-50 text-gray-700"}`}
+                          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm transition ${active ? "bg-[#F0F7F5] text-[#00704A]" : "hover:bg-gray-50 text-gray-700"}`}
                         >
                           <Avatar name={m.name} size={5} />
                           <span className="truncate">{m.name}</span>
-                          {active && <CheckCircle size={12} className="ml-auto text-[#1F4D46]" />}
+                          {active && <CheckCircle size={12} className="ml-auto text-[#00704A]" />}
                         </button>
                       );
                     })}
@@ -220,7 +221,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
                 type="date"
                 value={form.dueDate ? form.dueDate.slice(0, 10) : ""}
                 onChange={(e) => { setForm((f) => ({ ...f, dueDate: e.target.value })); save({ dueDate: e.target.value || null }); }}
-                className={`text-xs border rounded-lg px-2 py-1 bg-white focus:outline-none w-full ${overdue ? "border-red-300 text-red-500" : "border-[#D8CDB9]"}`}
+                className={`text-xs border rounded-lg px-2 py-1 bg-white focus:outline-none w-full ${overdue ? "border-red-300 text-red-500" : "border-[#DDD8CC]"}`}
               />
             </div>
             <div>
@@ -231,7 +232,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
                 type="datetime-local"
                 value={form.reminderAt ? form.reminderAt.slice(0, 16) : ""}
                 onChange={(e) => { setForm((f) => ({ ...f, reminderAt: e.target.value })); save({ reminderAt: e.target.value || null }); }}
-                className={`text-xs border rounded-lg px-2 py-1 bg-white focus:outline-none w-full ${reminder ? "border-amber-300 text-amber-600" : "border-[#D8CDB9]"}`}
+                className={`text-xs border rounded-lg px-2 py-1 bg-white focus:outline-none w-full ${reminder ? "border-amber-300 text-amber-600" : "border-[#DDD8CC]"}`}
               />
             </div>
           </div>
@@ -242,7 +243,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
             <select
               value={form.priority}
               onChange={(e) => { setForm((f) => ({ ...f, priority: e.target.value })); save({ priority: e.target.value }); }}
-              className="text-xs border border-[#D8CDB9] rounded-lg px-2 py-1 bg-white focus:outline-none w-full"
+              className="text-xs border border-[#DDD8CC] rounded-lg px-2 py-1 bg-white focus:outline-none w-full"
             >
               {PRIORITIES.map((p) => <option key={p} value={p}>{PRIORITY_CFG[p].label}</option>)}
             </select>
@@ -252,7 +253,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
             <select
               value={form.area ?? ""}
               onChange={(e) => { setForm((f) => ({ ...f, area: e.target.value })); save({ area: e.target.value }); }}
-              className="text-xs border border-[#D8CDB9] rounded-lg px-2 py-1 bg-white focus:outline-none w-full"
+              className="text-xs border border-[#DDD8CC] rounded-lg px-2 py-1 bg-white focus:outline-none w-full"
             >
               {AREAS.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
@@ -296,7 +297,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
                     <Avatar name={c.author} size={6} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-xs font-semibold text-[#1F4D46]">{c.author}</span>
+                        <span className="text-xs font-semibold text-[#00704A]">{c.author}</span>
                         <span className="text-[10px] text-gray-400">{fmtDateTime(c.createdAt)}</span>
                       </div>
                       <p className="text-sm text-gray-700 mt-0.5 leading-relaxed">{c.content}</p>
@@ -325,14 +326,14 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
               team={team}
               placeholder="Escrever comentário… use @ para mencionar alguém"
               rows={1}
-              className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F4D46]/20 resize-none"
+              className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#00704A]/20 resize-none"
               style={{ minHeight: 40, maxHeight: 120 }}
             />
           </div>
           <button
             onClick={addComment}
             disabled={sending || !comment.trim()}
-            className="bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-40 text-white w-9 h-9 rounded-xl flex items-center justify-center transition shrink-0"
+            className="bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-40 text-white w-9 h-9 rounded-xl flex items-center justify-center transition shrink-0"
           >
             <Send size={14} />
           </button>
@@ -485,7 +486,7 @@ export default function Tasks() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F4D46] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#00704A] flex items-center gap-2">
             Tasks
             {reminderCount > 0 && (
               <span className="text-sm font-semibold bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -497,40 +498,49 @@ export default function Tasks() {
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="bg-[#1F4D46] hover:bg-[#285A50] text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
+          className="bg-[#00704A] hover:bg-[#1E3932] text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
         >
           <Plus size={15} /> Nova task
         </button>
       </div>
 
+      <SecaoInfo itens={[
+        { nome: "Quadro Kanban", desc: "Organize tarefas em 6 colunas: Backlog, Na fila, Em andamento, Pendente, Homologação e Concluído. Arraste os cards entre as colunas." },
+        { nome: "Responsáveis", desc: "Atribua uma ou mais pessoas a cada task. Use o filtro 'Minhas' para ver só as suas." },
+        { nome: "Detalhe e timeline", desc: "Clique num card para abrir o painel com descrição, prazo, lembrete e o histórico de comentários da tarefa." },
+        { nome: "@menções", desc: "Mencione um sócio com @ nos comentários ou na descrição — ele recebe uma notificação no sino." },
+        { nome: "Prazo e lembrete", desc: "Defina data de entrega e um lembrete com hora; o card avisa quando vence e dispara notificação no navegador." },
+        { nome: "Áreas", desc: "Classifique por área (CS, Comercial, Financeiro, Tecnologia, Jurídico, Interno) e filtre por ela." },
+      ]} />
+
       {/* New task form */}
       {showForm && (
-        <div className="bg-white border border-[#E8E0D2] rounded-2xl p-5 mb-5 space-y-3">
+        <div className="bg-white border border-[#E6E2D8] rounded-2xl p-5 mb-5 space-y-3">
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="Título da task *"
-            className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F4D46]/20"
+            className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#00704A]/20"
           />
           <textarea
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="Descrição (opcional)"
             rows={2}
-            className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none resize-none"
+            className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none resize-none"
           />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Prioridade</label>
               <select value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
-                className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                 {PRIORITIES.map((p) => <option key={p} value={p}>{PRIORITY_CFG[p].label}</option>)}
               </select>
             </div>
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Área</label>
               <select value={form.area} onChange={(e) => setForm((f) => ({ ...f, area: e.target.value }))}
-                className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                 {AREAS.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
@@ -538,7 +548,7 @@ export default function Tasks() {
               <label className="text-xs text-gray-400 mb-1 block">Prazo</label>
               <input type="date" value={form.dueDate}
                 onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
-                className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
+                className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
             </div>
             <div>
               <label className="text-xs text-gray-400 mb-1 block">
@@ -546,7 +556,7 @@ export default function Tasks() {
               </label>
               <input type="datetime-local" value={form.reminderAt}
                 onChange={(e) => setForm((f) => ({ ...f, reminderAt: e.target.value }))}
-                className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
+                className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
             </div>
           </div>
           {/* Assignees in form */}
@@ -564,10 +574,10 @@ export default function Tasks() {
                         : [...(form.assignees ?? []), { id: m.id, name: m.name }];
                       setForm((f) => ({ ...f, assignees: next }));
                     }}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs transition ${active ? "bg-[#F0F7F5] border-[#1F4D46]/30 text-[#1F4D46]" : "border-[#E8E0D2] text-gray-500 hover:border-[#C2A56B]"}`}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs transition ${active ? "bg-[#F0F7F5] border-[#00704A]/30 text-[#00704A]" : "border-[#E6E2D8] text-gray-500 hover:border-[#CBA258]"}`}
                   >
                     <Avatar name={m.name} size={5} /> {m.name}
-                    {active && <CheckCircle size={11} className="text-[#1F4D46]" />}
+                    {active && <CheckCircle size={11} className="text-[#00704A]" />}
                   </button>
                 );
               })}
@@ -578,7 +588,7 @@ export default function Tasks() {
             <button onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}
               className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-xl transition">Cancelar</button>
             <button onClick={createTask} disabled={saving}
-              className="bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-50 text-white px-5 py-2 rounded-xl text-sm font-medium transition">
+              className="bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-50 text-white px-5 py-2 rounded-xl text-sm font-medium transition">
               {saving ? "Criando…" : "Criar task"}
             </button>
           </div>
@@ -587,28 +597,28 @@ export default function Tasks() {
 
       {/* Filters */}
       <div className="flex gap-2 mb-5 flex-wrap items-center">
-        <div className="flex bg-white border border-[#E8E0D2] rounded-xl p-0.5">
+        <div className="flex bg-white border border-[#E6E2D8] rounded-xl p-0.5">
           <button onClick={() => setMyOnly(false)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${!myOnly ? "bg-[#1F4D46] text-white" : "text-gray-500 hover:text-[#1F4D46]"}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${!myOnly ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-[#00704A]"}`}>
             <Users size={12} /> Todas
           </button>
           <button onClick={() => setMyOnly(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${myOnly ? "bg-[#1F4D46] text-white" : "text-gray-500 hover:text-[#1F4D46]"}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${myOnly ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-[#00704A]"}`}>
             <User size={12} /> Minhas
           </button>
         </div>
 
-        <div className="w-px h-5 bg-[#E8E0D2]" />
+        <div className="w-px h-5 bg-[#E6E2D8]" />
 
         {["", ...STATUSES].map((s) => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${filterStatus === s ? "bg-[#1F4D46] text-white" : "bg-white border border-[#E8E0D2] text-gray-500 hover:border-[#1F4D46]"}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${filterStatus === s ? "bg-[#00704A] text-white" : "bg-white border border-[#E6E2D8] text-gray-500 hover:border-[#00704A]"}`}>
             {s ? STATUS_CFG[s].label : "Todos status"}
           </button>
         ))}
 
         <select value={filterArea} onChange={(e) => setFilterModule(e.target.value)}
-          className="ml-auto border border-[#E8E0D2] rounded-lg px-3 py-1.5 text-xs bg-white text-gray-500 focus:outline-none">
+          className="ml-auto border border-[#E6E2D8] rounded-lg px-3 py-1.5 text-xs bg-white text-gray-500 focus:outline-none">
           <option value="">Todas as áreas</option>
           {AREAS.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
@@ -617,7 +627,7 @@ export default function Tasks() {
       {/* Board */}
       {loading ? (
         <div className="grid grid-cols-3 gap-3">
-          {[1,2,3,4,5,6].map((i) => <div key={i} className="h-48 bg-white rounded-2xl animate-pulse border border-[#E8E0D2]" />)}
+          {[1,2,3,4,5,6].map((i) => <div key={i} className="h-48 bg-white rounded-2xl animate-pulse border border-[#E6E2D8]" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 overflow-x-auto">
@@ -626,15 +636,15 @@ export default function Tasks() {
             return (
               <div
                 key={s}
-                className={`rounded-2xl overflow-hidden border transition-colors ${dragOverColumn === s ? "border-[#1F4D46] bg-[#F0F7F5]" : "bg-white border-[#E8E0D2]"}`}
+                className={`rounded-2xl overflow-hidden border transition-colors ${dragOverColumn === s ? "border-[#00704A] bg-[#F0F7F5]" : "bg-white border-[#E6E2D8]"}`}
                 onDragOver={(e) => { e.preventDefault(); setDragOverColumn(s); }}
                 onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverColumn(null); }}
                 onDrop={(e) => { e.preventDefault(); dropOnColumn(s); }}
               >
-                <div className="px-3 py-2.5 border-b border-[#F0EBE3]">
+                <div className="px-3 py-2.5 border-b border-[#E6E2D8]">
                   <div className="flex items-center gap-1.5">
                     <Icon size={13} className={color} />
-                    <span className="text-sm font-semibold text-[#1F4D46] leading-none">{label}</span>
+                    <span className="text-sm font-semibold text-[#00704A] leading-none">{label}</span>
                     <span className="ml-auto text-xs text-gray-400 shrink-0">{grouped[s].length}</span>
                   </div>
                   {sub && <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{sub}</p>}
@@ -654,11 +664,11 @@ export default function Tasks() {
                         onDragStart={() => { draggingIdRef.current = task.id; setDraggingId(task.id); }}
                         onDragEnd={() => { draggingIdRef.current = null; setDraggingId(null); setDragOverColumn(null); }}
                         onClick={() => !draggingId && setSelected(task)}
-                        className={`bg-[#F5F1EA] border rounded-xl p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition group ${overdue ? "border-red-200" : "border-[#E8E0D2]"} ${isDragging ? "opacity-40 scale-95" : ""}`}
+                        className={`bg-[#F2F0EB] border rounded-xl p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition group ${overdue ? "border-red-200" : "border-[#E6E2D8]"} ${isDragging ? "opacity-40 scale-95" : ""}`}
                       >
                         {/* Title row */}
                         <div className="flex items-start justify-between gap-1.5 mb-2">
-                          <p className="text-sm font-medium text-[#1F4D46] leading-tight flex-1">{task.title}</p>
+                          <p className="text-sm font-medium text-[#00704A] leading-tight flex-1">{task.title}</p>
                           <button
                             onClick={(e) => cycleStatus(task, e)}
                             className={`shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition ${color}`}

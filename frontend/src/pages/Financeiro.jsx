@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   TrendingUp, Users, DollarSign, BarChart2,
   ArrowUp, ArrowDown, Plus, Check, X, Clock,
-  Trash2, AlertCircle, CreditCard, Building2, Receipt, RefreshCw,
+  Trash2, AlertCircle, CreditCard, Building2, Receipt, RefreshCw, Calculator,
 } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import SecaoInfo from "../components/SecaoInfo";
 import adminApi from "../services/api";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import toast from "react-hot-toast";
@@ -51,6 +53,7 @@ function fmtMonth(d) {
 
 export default function Financeiro() {
   const { adminUser } = useAdminAuth();
+  const navigate = useNavigate();
   const [tab,          setTab]          = useState("faturamento");
   const [mrr,          setMrr]          = useState(null);
   const [billing,      setBilling]      = useState([]);
@@ -169,16 +172,33 @@ export default function Financeiro() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F4D46]">Financeiro</h1>
+          <h1 className="text-2xl font-bold text-[#00704A]">Financeiro</h1>
           <p className="text-gray-400 text-sm mt-0.5">Faturamento, extrato e MRR</p>
         </div>
-        <button
-          onClick={() => { setShowForm((v) => !v); setTab("extrato"); }}
-          className="bg-[#1F4D46] hover:bg-[#285A50] text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
-        >
-          <Plus size={15} /> Novo lançamento
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate("/planejamento")}
+            className="border border-[#00704A]/30 text-[#00704A] hover:bg-[#F0F7F5] px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
+          >
+            <Calculator size={15} /> Planejamento Financeiro
+          </button>
+          <button
+            onClick={() => { setShowForm((v) => !v); setTab("extrato"); }}
+            className="bg-[#00704A] hover:bg-[#1E3932] text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
+          >
+            <Plus size={15} /> Novo lançamento
+          </button>
+        </div>
       </div>
+
+      <SecaoInfo itens={[
+        { nome: "Faturamento (MRR)", desc: "Receita mensal recorrente das clínicas pagantes, calculada por plano. Acompanha quem pagou e quanto deve entrar no mês." },
+        { nome: "Extrato", desc: "Lançamentos de receitas e despesas com fluxo de aprovação: pendente → aprovado/rejeitado. Cada movimentação registra clínica, plano e método." },
+        { nome: "Despesas recorrentes", desc: "Cadastre despesas fixas (mensal, semanal, anual) que geram lançamentos automaticamente a cada período." },
+        { nome: "ARR", desc: "Receita anual — conta apenas contratos anuais efetivamente confirmados, não projeções." },
+        { nome: "Planejamento Financeiro", desc: "Simulador de cenários: projeta receita, EBITDA e distribuição entre sócios conforme premissas editáveis." },
+      ]} />
+
 
       {/* Summary strip */}
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-5">
@@ -192,16 +212,16 @@ export default function Financeiro() {
           { label: "Resultado",          value: fmtBRL(resultado),    sub: resultado >= 0 ? "positivo" : "negativo",
             bold: true, color: resultado >= 0 ? "text-green-600" : "text-red-500" },
         ].map(({ label, value, sub, bold, color }) => (
-          <div key={label} className="bg-white border border-[#E8E0D2] rounded-2xl px-4 py-3">
+          <div key={label} className="bg-white border border-[#E6E2D8] rounded-2xl px-4 py-3">
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
-            <p className={`text-lg font-black ${color ?? "text-[#1F4D46]"}`}>{value}</p>
+            <p className={`text-lg font-black ${color ?? "text-[#00704A]"}`}>{value}</p>
             <p className="text-[10px] text-gray-400">{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#F5F1EA] border border-[#D8CDB9] rounded-xl p-1 mb-5 w-fit">
+      <div className="flex gap-1 bg-[#F2F0EB] border border-[#DDD8CC] rounded-xl p-1 mb-5 w-fit">
         {[
           ["faturamento", <Building2   size={13} />, "Faturamento"],
           ["extrato",     <Receipt     size={13} />, `Extrato${pendingCount > 0 ? ` (${pendingCount})` : ""}`],
@@ -211,7 +231,7 @@ export default function Financeiro() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${tab === key ? "bg-[#1F4D46] text-white" : "text-gray-500 hover:text-[#1F4D46]"}`}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${tab === key ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-[#00704A]"}`}
           >
             {icon}{label}
           </button>
@@ -230,9 +250,9 @@ export default function Financeiro() {
             </div>
           )}
 
-          <div className="bg-white border border-[#E8E0D2] rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-[#F0EBE3] flex items-center justify-between bg-[#F5F1EA]">
-              <span className="text-sm font-bold text-[#1F4D46]">
+          <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#E6E2D8] flex items-center justify-between bg-[#F2F0EB]">
+              <span className="text-sm font-bold text-[#00704A]">
                 Clínicas — {fmtMonth(new Date())}
               </span>
               <span className="text-xs text-gray-400">{billing.length} clientes · esperado {fmtBRL(expectedTotal)}</span>
@@ -258,7 +278,7 @@ export default function Financeiro() {
                   {billing.map((c) => {
                     const bcfg = BILLING_STATUS[c.status] ?? BILLING_STATUS.pendente;
                     return (
-                      <tr key={c.id} className="border-t border-[#F0EBE3] hover:bg-[#FDFCFA] transition group">
+                      <tr key={c.id} className="border-t border-[#E6E2D8] hover:bg-[#F2F0EB] transition group">
                         <td className="px-5 py-3.5">
                           <p className="font-semibold text-gray-800 leading-tight">{c.name}</p>
                           <p className="text-xs text-gray-400">{c.email}</p>
@@ -292,7 +312,7 @@ export default function Financeiro() {
                         <td className="px-5 py-3.5 text-right">
                           {c.expected > 0 ? (
                             <div>
-                              <span className="font-bold text-[#1F4D46]">{fmtBRL(c.expected)}</span>
+                              <span className="font-bold text-[#00704A]">{fmtBRL(c.expected)}</span>
                               <p className="text-[10px] text-gray-400">{c.billingCycle === "anual" ? "valor anual" : "/mês"}</p>
                             </div>
                           ) : (
@@ -347,12 +367,12 @@ export default function Financeiro() {
         <>
           {/* New entry form */}
           {showForm && (
-            <div className="bg-white border border-[#E8E0D2] rounded-2xl p-5 mb-5">
-              <h3 className="text-sm font-bold text-[#1F4D46] mb-4">Novo lançamento</h3>
+            <div className="bg-white border border-[#E6E2D8] rounded-2xl p-5 mb-5">
+              <h3 className="text-sm font-bold text-[#00704A] mb-4">Novo lançamento</h3>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Tipo</label>
-                  <div className="flex bg-[#F5F1EA] border border-[#D8CDB9] rounded-xl p-0.5">
+                  <div className="flex bg-[#F2F0EB] border border-[#DDD8CC] rounded-xl p-0.5">
                     {["despesa", "receita"].map((t) => (
                       <button key={t} onClick={() => setForm((f) => ({ ...f, type: t, category: "" }))}
                         className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition capitalize ${form.type === t ? (t === "despesa" ? "bg-red-500 text-white" : "bg-green-500 text-white") : "text-gray-500"}`}>
@@ -364,7 +384,7 @@ export default function Financeiro() {
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Categoria</label>
                   <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                     <option value="">Selecionar…</option>
                     {(form.type === "despesa" ? DESPESA_CATS : RECEITA_CATS).map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -372,36 +392,36 @@ export default function Financeiro() {
                 <div className="col-span-2">
                   <label className="text-xs text-gray-400 mb-1 block">Descrição *</label>
                   <input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Valor (R$) *</label>
                   <input type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Vencimento</label>
                   <input type="date" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs text-gray-400 mb-1 block">Observações</label>
                   <input value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
                 </div>
 
                 {/* Recorrência toggle */}
-                <div className="col-span-2 border-t border-[#F0EBE3] pt-3">
+                <div className="col-span-2 border-t border-[#E6E2D8] pt-3">
                   <label className="flex items-center gap-3 cursor-pointer select-none">
                     <button
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, recorrente: !f.recorrente }))}
-                      className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${form.recorrente ? "bg-[#1F4D46]" : "bg-gray-200"}`}
+                      className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${form.recorrente ? "bg-[#00704A]" : "bg-gray-200"}`}
                     >
                       <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.recorrente ? "left-5" : "left-0.5"}`} />
                     </button>
                     <div>
-                      <span className="text-sm font-medium text-[#1F4D46]">Despesa recorrente</span>
+                      <span className="text-sm font-medium text-[#00704A]">Despesa recorrente</span>
                       <p className="text-[10px] text-gray-400">Gera automaticamente um novo lançamento pendente a cada período</p>
                     </div>
                   </label>
@@ -411,7 +431,7 @@ export default function Financeiro() {
                       <div>
                         <label className="text-xs text-gray-400 mb-1 block">Frequência</label>
                         <select value={form.recorrencia} onChange={(e) => setForm((f) => ({ ...f, recorrencia: e.target.value }))}
-                          className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                          className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                           {Object.entries(RECORRENCIA_LABELS).map(([v, l]) => (
                             <option key={v} value={v}>{l}</option>
                           ))}
@@ -421,7 +441,7 @@ export default function Financeiro() {
                         <label className="text-xs text-gray-400 mb-1 block">Encerrar em (opcional)</label>
                         <input type="date" value={form.recorrenciaFim}
                           onChange={(e) => setForm((f) => ({ ...f, recorrenciaFim: e.target.value }))}
-                          className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
+                          className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
                       </div>
                     </div>
                   )}
@@ -430,7 +450,7 @@ export default function Financeiro() {
               <div className="flex gap-2 justify-end">
                 <button onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-xl transition">Cancelar</button>
                 <button onClick={createEntry} disabled={saving}
-                  className="bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-50 text-white px-5 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2">
+                  className="bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-50 text-white px-5 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2">
                   {form.recorrente && <RefreshCw size={13} />}
                   {saving ? "Salvando…" : form.recorrente ? "Criar recorrente" : "Criar lançamento"}
                 </button>
@@ -440,28 +460,28 @@ export default function Financeiro() {
 
           {/* Filters */}
           <div className="flex gap-2 mb-4 flex-wrap">
-            <div className="flex bg-white border border-[#E8E0D2] rounded-xl p-0.5 text-xs">
+            <div className="flex bg-white border border-[#E6E2D8] rounded-xl p-0.5 text-xs">
               {[["","Todos"],["receita","Receitas"],["despesa","Despesas"]].map(([v,l]) => (
                 <button key={v} onClick={() => setFilterType(v)}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition ${filterType===v ? "bg-[#1F4D46] text-white" : "text-gray-500 hover:text-gray-700"}`}>{l}</button>
+                  className={`px-3 py-1.5 rounded-lg font-medium transition ${filterType===v ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-gray-700"}`}>{l}</button>
               ))}
             </div>
-            <div className="flex bg-white border border-[#E8E0D2] rounded-xl p-0.5 text-xs">
+            <div className="flex bg-white border border-[#E6E2D8] rounded-xl p-0.5 text-xs">
               {[["","Todos"],["pendente","Pendentes"],["aprovado","Aprovados"],["rejeitado","Rejeitados"]].map(([v,l]) => (
                 <button key={v} onClick={() => setFilterStatus(v)}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition ${filterStatus===v ? "bg-[#1F4D46] text-white" : "text-gray-500 hover:text-gray-700"}`}>{l}</button>
+                  className={`px-3 py-1.5 rounded-lg font-medium transition ${filterStatus===v ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-gray-700"}`}>{l}</button>
               ))}
             </div>
           </div>
 
-          <div className="bg-white border border-[#E8E0D2] rounded-2xl overflow-hidden">
+          <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
             {loadingE ? (
               <div className="py-12 text-center text-gray-400 text-sm">Carregando…</div>
             ) : entries.length === 0 ? (
               <div className="py-14 text-center text-gray-300 text-sm">Nenhum lançamento.</div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-[#F5F1EA] text-[10px] text-gray-400 uppercase tracking-wide">
+                <thead className="bg-[#F2F0EB] text-[10px] text-gray-400 uppercase tracking-wide">
                   <tr>
                     <th className="text-left px-4 py-2.5">Descrição / Clínica</th>
                     <th className="text-left px-4 py-2.5">Plano</th>
@@ -477,7 +497,7 @@ export default function Financeiro() {
                     const cfg       = STATUS_CFG[e.status] ?? STATUS_CFG.pendente;
                     const isReceita = e.type === "receita";
                     return (
-                      <tr key={e.id} className="border-t border-[#F0EBE3] hover:bg-[#FDFCFA] transition group">
+                      <tr key={e.id} className="border-t border-[#E6E2D8] hover:bg-[#F2F0EB] transition group">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <span className={`w-2 h-2 rounded-full shrink-0 ${isReceita ? "bg-green-400" : "bg-red-400"}`} />
@@ -553,7 +573,7 @@ export default function Financeiro() {
             </p>
             <button
               onClick={() => { setShowForm(true); setForm((f) => ({ ...EMPTY_FORM, recorrente: true })); }}
-              className="text-xs text-[#1F4D46] border border-[#1F4D46]/30 hover:bg-[#F0F7F5] px-3 py-1.5 rounded-lg transition flex items-center gap-1.5"
+              className="text-xs text-[#00704A] border border-[#00704A]/30 hover:bg-[#F0F7F5] px-3 py-1.5 rounded-lg transition flex items-center gap-1.5"
             >
               <Plus size={12} /> Nova recorrente
             </button>
@@ -561,13 +581,13 @@ export default function Financeiro() {
 
           {/* New entry form (shared with extrato) */}
           {showForm && (
-            <div className="bg-white border border-[#E8E0D2] rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-[#1F4D46] mb-4">Nova despesa recorrente</h3>
+            <div className="bg-white border border-[#E6E2D8] rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-[#00704A] mb-4">Nova despesa recorrente</h3>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Categoria</label>
                   <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                     <option value="">Selecionar…</option>
                     {DESPESA_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -575,7 +595,7 @@ export default function Financeiro() {
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Frequência</label>
                   <select value={form.recorrencia} onChange={(e) => setForm((f) => ({ ...f, recorrencia: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                     {Object.entries(RECORRENCIA_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
@@ -583,24 +603,24 @@ export default function Financeiro() {
                   <label className="text-xs text-gray-400 mb-1 block">Descrição *</label>
                   <input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     placeholder="Ex: Servidor AWS, Stripe, Notion…"
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Valor (R$) *</label>
                   <input type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Encerrar em (opcional)</label>
                   <input type="date" value={form.recorrenciaFim}
                     onChange={(e) => setForm((f) => ({ ...f, recorrenciaFim: e.target.value }))}
-                    className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
+                    className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none" />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-xl">Cancelar</button>
                 <button onClick={createEntry} disabled={saving}
-                  className="bg-[#1F4D46] text-white px-5 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+                  className="bg-[#00704A] text-white px-5 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
                   <RefreshCw size={13} /> {saving ? "Salvando…" : "Criar recorrente"}
                 </button>
               </div>
@@ -610,14 +630,14 @@ export default function Financeiro() {
           {loadingR ? (
             <div className="py-10 text-center text-gray-400 text-sm">Carregando…</div>
           ) : recorrentes.length === 0 ? (
-            <div className="bg-white border border-[#E8E0D2] rounded-2xl py-14 text-center text-gray-300 text-sm">
+            <div className="bg-white border border-[#E6E2D8] rounded-2xl py-14 text-center text-gray-300 text-sm">
               Nenhuma despesa recorrente cadastrada.<br />
               <span className="text-xs text-gray-400 mt-1 block">Crie uma para gerar lançamentos pendentes automaticamente a cada período.</span>
             </div>
           ) : (
-            <div className="bg-white border border-[#E8E0D2] rounded-2xl overflow-hidden">
+            <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-[#F5F1EA] text-[10px] text-gray-400 uppercase tracking-wide">
+                <thead className="bg-[#F2F0EB] text-[10px] text-gray-400 uppercase tracking-wide">
                   <tr>
                     <th className="text-left px-5 py-2.5">Descrição</th>
                     <th className="text-left px-5 py-2.5">Categoria</th>
@@ -629,10 +649,10 @@ export default function Financeiro() {
                 </thead>
                 <tbody>
                   {recorrentes.map((r) => (
-                    <tr key={r.id} className="border-t border-[#F0EBE3] hover:bg-[#FDFCFA] transition group">
+                    <tr key={r.id} className="border-t border-[#E6E2D8] hover:bg-[#F2F0EB] transition group">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <RefreshCw size={12} className="text-[#1F4D46] shrink-0" />
+                          <RefreshCw size={12} className="text-[#00704A] shrink-0" />
                           <span className="font-medium text-gray-800">{r.description}</span>
                         </div>
                       </td>
@@ -666,7 +686,7 @@ export default function Financeiro() {
         <div className="space-y-5">
           {loadingM ? (
             <div className="grid grid-cols-4 gap-4">
-              {[1,2,3,4].map((i) => <div key={i} className="h-24 bg-white rounded-2xl animate-pulse border border-[#E8E0D2]" />)}
+              {[1,2,3,4].map((i) => <div key={i} className="h-24 bg-white rounded-2xl animate-pulse border border-[#E6E2D8]" />)}
             </div>
           ) : (
             <>
@@ -677,23 +697,23 @@ export default function Financeiro() {
                   { label: "Novas este mês",  value: `+${mrr?.newThisMonth??0}`,icon: Users      },
                   { label: "Clínicas ativas", value: totalClinics,             icon: BarChart2  },
                 ].map(({ label, value, icon: Icon, sub, color }) => (
-                  <div key={label} className="bg-white border border-[#E8E0D2] rounded-2xl p-4">
+                  <div key={label} className="bg-white border border-[#E6E2D8] rounded-2xl p-4">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
                       <div className="w-6 h-6 bg-[#F0F7F5] rounded-lg flex items-center justify-center">
-                        <Icon size={12} className="text-[#1F4D46]" />
+                        <Icon size={12} className="text-[#00704A]" />
                       </div>
                     </div>
-                    <p className={`text-xl font-black ${color ?? "text-[#1F4D46]"}`}>{value}</p>
+                    <p className={`text-xl font-black ${color ?? "text-[#00704A]"}`}>{value}</p>
                     {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
                   </div>
                 ))}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="bg-white border border-[#E8E0D2] rounded-2xl p-5">
+                <div className="bg-white border border-[#E6E2D8] rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-bold text-[#1F4D46]">Distribuição por plano</p>
+                    <p className="text-sm font-bold text-[#00704A]">Distribuição por plano</p>
                     <div className="flex items-center gap-1.5 text-xs">
                       {((mrr?.newThisMonth??0) - (mrr?.newLastMonth??0)) >= 0
                         ? <ArrowUp size={11} className="text-green-500" />
@@ -712,10 +732,10 @@ export default function Financeiro() {
                             <span className="font-medium text-gray-700">{PLAN_LABELS[p.plan]??p.plan}</span>
                             <div className="flex gap-3">
                               <span className="text-gray-400">{p.count} clínica{p.count!==1?"s":""}</span>
-                              <span className="font-semibold text-[#1F4D46]">{fmtBRL(p.mrr)}/mês</span>
+                              <span className="font-semibold text-[#00704A]">{fmtBRL(p.mrr)}/mês</span>
                             </div>
                           </div>
-                          <div className="h-1.5 bg-[#F0EBE3] rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-[#E6E2D8] rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${PLAN_COLORS_BAR[p.plan]??"bg-gray-300"}`} style={{ width:`${pct}%` }} />
                           </div>
                         </div>
@@ -724,8 +744,8 @@ export default function Financeiro() {
                   </div>
                 </div>
 
-                <div className="bg-white border border-[#E8E0D2] rounded-2xl p-5">
-                  <p className="text-sm font-bold text-[#1F4D46] mb-4">Crescimento — últimos 6 meses</p>
+                <div className="bg-white border border-[#E6E2D8] rounded-2xl p-5">
+                  <p className="text-sm font-bold text-[#00704A] mb-4">Crescimento — últimos 6 meses</p>
                   {(mrr?.growth??[]).length > 0 && (
                     <div className="flex items-end gap-2 h-28">
                       {mrr.growth.map((g, i) => {
@@ -734,8 +754,8 @@ export default function Financeiro() {
                         const last = i === mrr.growth.length - 1;
                         return (
                           <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                            <span className="text-xs font-semibold text-[#1F4D46]">{g.count}</span>
-                            <div className={`w-full rounded-t-lg ${last ? "bg-[#1F4D46]" : "bg-[#D8CDB9]"}`} style={{ height:`${h}%` }} />
+                            <span className="text-xs font-semibold text-[#00704A]">{g.count}</span>
+                            <div className={`w-full rounded-t-lg ${last ? "bg-[#00704A]" : "bg-[#DDD8CC]"}`} style={{ height:`${h}%` }} />
                             <span className="text-[10px] text-gray-400">{g.month}</span>
                           </div>
                         );

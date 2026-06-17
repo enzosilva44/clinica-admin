@@ -3,6 +3,7 @@ import { Users, TrendingUp, ChevronDown, ChevronUp, Settings2 } from "lucide-rea
 import adminApi from "../services/api";
 import { getFeatures } from "../config/features";
 import AdminLayout from "../components/AdminLayout";
+import SecaoInfo from "../components/SecaoInfo";
 import toast from "react-hot-toast";
 
 const PLAN_LABELS = { solo: "Solo", clinica: "Clínica", enterprise: "Enterprise", dev: "Dev" };
@@ -70,10 +71,10 @@ function FeatureToggles({ clinic, onSave }) {
   }
 
   return (
-    <div className="px-6 pb-5 pt-2 bg-[#FDFCFA] border-t border-[#E8E0D2]">
+    <div className="px-6 pb-5 pt-2 bg-[#F2F0EB] border-t border-[#E6E2D8]">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          Customização de features — sobrescreve o plano <span className="text-[#1F4D46]">{PLAN_LABELS[clinic.plan] ?? clinic.plan}</span>
+          Customização de features — sobrescreve o plano <span className="text-[#00704A]">{PLAN_LABELS[clinic.plan] ?? clinic.plan}</span>
         </p>
         <div className="flex items-center gap-2">
           {isDirty && (
@@ -83,7 +84,7 @@ function FeatureToggles({ clinic, onSave }) {
             </button>
           )}
           <button onClick={save} disabled={!isDirty || saving}
-            className="text-xs bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-40 text-white px-4 py-1.5 rounded-lg transition">
+            className="text-xs bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-40 text-white px-4 py-1.5 rounded-lg transition">
             {saving ? "Salvando…" : "Salvar alterações"}
           </button>
         </div>
@@ -98,9 +99,9 @@ function FeatureToggles({ clinic, onSave }) {
           return (
             <div key={key}
               className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border transition
-                ${value ? "bg-[#F0F7F5] border-[#1F4D46]/20" : "bg-white border-[#E8E0D2]"}`}>
+                ${value ? "bg-[#F0F7F5] border-[#00704A]/20" : "bg-white border-[#E6E2D8]"}`}>
               <div className="min-w-0">
-                <p className={`text-xs font-medium truncate ${value ? "text-[#1F4D46]" : "text-gray-400"}`}>{label}</p>
+                <p className={`text-xs font-medium truncate ${value ? "text-[#00704A]" : "text-gray-400"}`}>{label}</p>
                 {hasOverride && (
                   <p className="text-[10px] text-amber-500">
                     Override {fromPlan ? "(ligado→desl.)" : "(desl.→ligado)"}
@@ -109,7 +110,7 @@ function FeatureToggles({ clinic, onSave }) {
                 )}
               </div>
               <button onClick={() => toggle(key)}
-                className={`shrink-0 w-9 h-5 rounded-full transition-colors relative ${value ? "bg-[#1F4D46]" : "bg-gray-200"}`}>
+                className={`shrink-0 w-9 h-5 rounded-full transition-colors relative ${value ? "bg-[#00704A]" : "bg-gray-200"}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${value ? "left-4" : "left-0.5"}`} />
               </button>
             </div>
@@ -151,30 +152,37 @@ export default function AdminPanel() {
 
   return (
     <AdminLayout>
+        <SecaoInfo titulo="O que é este painel?" itens={[
+          { nome: "Visão geral", desc: "Resumo de quantas clínicas usam o sistema e a distribuição entre os planos (Solo, Clínica, Pro, Dev/Enterprise)." },
+          { nome: "Clínicas cadastradas", desc: "Lista todas as clínicas com plano, nº de pacientes e agendamentos, e data de cadastro." },
+          { nome: "Trocar plano", desc: "Clique no badge de plano de uma clínica para alterar o plano dela na hora." },
+          { nome: "Features por clínica", desc: "Expanda uma clínica para ligar/desligar funcionalidades específicas, sobrescrevendo o padrão do plano." },
+        ]} />
+
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Total de clínicas", value: stats?.total ?? "—",  icon: Users,      color: "#1F4D46" },
+            { label: "Total de clínicas", value: stats?.total ?? "—",  icon: Users,      color: "#00704A" },
             { label: "Plano Solo",        value: byPlan("solo"),        icon: TrendingUp, color: "#6B7280" },
-            { label: "Plano Clínica",     value: byPlan("clinica"),     icon: TrendingUp, color: "#059669" },
+            { label: "Plano Clínica",     value: byPlan("clinica"),     icon: TrendingUp, color: "#00704A" },
             { label: "Dev / Enterprise",  value: byPlan("dev") + byPlan("enterprise"), icon: TrendingUp, color: "#7C3AED" },
           ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-white rounded-2xl p-5 border border-[#E8E0D2]">
+            <div key={label} className="bg-white rounded-2xl p-5 border border-[#E6E2D8]">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}18` }}>
                   <Icon size={14} style={{ color }} />
                 </div>
               </div>
-              <p className="text-3xl font-black text-[#1F4D46]">{value}</p>
+              <p className="text-3xl font-black text-[#00704A]">{value}</p>
             </div>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-[#E8E0D2] overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-[#E8E0D2]">
-            <h2 className="text-base font-bold text-[#1F4D46]">Clínicas cadastradas</h2>
+        <div className="bg-white rounded-2xl border border-[#E6E2D8] overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#E6E2D8]">
+            <h2 className="text-base font-bold text-[#00704A]">Clínicas cadastradas</h2>
           </div>
 
           {loading ? (
@@ -183,7 +191,7 @@ export default function AdminPanel() {
             <div className="py-16 text-center text-gray-400 text-sm">Nenhuma clínica cadastrada ainda.</div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-[#F5F1EA] text-xs text-gray-500 uppercase tracking-wide">
+              <thead className="bg-[#F2F0EB] text-xs text-gray-500 uppercase tracking-wide">
                 <tr>
                   <th className="text-left px-6 py-3">Clínica</th>
                   <th className="text-left px-6 py-3">E-mail</th>
@@ -197,7 +205,7 @@ export default function AdminPanel() {
               <tbody>
                 {clinics.map((c) => (
                   <>
-                    <tr key={c.id} className={`border-t border-[#F0EBE3] hover:bg-[#FDFCFA] transition ${expanded === c.id ? "bg-[#FDFCFA]" : ""}`}>
+                    <tr key={c.id} className={`border-t border-[#E6E2D8] hover:bg-[#F2F0EB] transition ${expanded === c.id ? "bg-[#F2F0EB]" : ""}`}>
                       <td className="px-6 py-4 font-medium text-gray-800">{c.name}</td>
                       <td className="px-6 py-4 text-gray-500">{c.email}</td>
                       <td className="px-6 py-4">
@@ -205,7 +213,7 @@ export default function AdminPanel() {
                           <select autoFocus defaultValue={c.plan}
                             onBlur={() => setEditPlan(null)}
                             onChange={(e) => changePlan(c.id, e.target.value)}
-                            className="border border-[#C2A56B] rounded-lg px-2 py-1 text-xs bg-white">
+                            className="border border-[#CBA258] rounded-lg px-2 py-1 text-xs bg-white">
                             <option value="dev">Dev</option>
                             <option value="solo">Solo</option>
                             <option value="clinica">Clínica</option>
@@ -225,7 +233,7 @@ export default function AdminPanel() {
                       <td className="px-6 py-4 text-center">
                         <button onClick={() => setExpanded(expanded === c.id ? null : c.id)}
                           className={`w-8 h-8 rounded-xl flex items-center justify-center mx-auto transition
-                            ${expanded === c.id ? "bg-[#1F4D46] text-white" : "border border-[#D8CDB9] text-gray-400 hover:border-[#1F4D46] hover:text-[#1F4D46]"}`}>
+                            ${expanded === c.id ? "bg-[#00704A] text-white" : "border border-[#DDD8CC] text-gray-400 hover:border-[#00704A] hover:text-[#00704A]"}`}>
                           {expanded === c.id ? <ChevronUp size={14} /> : <Settings2 size={14} />}
                         </button>
                       </td>

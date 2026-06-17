@@ -1,4 +1,4 @@
-const COLORS = ["#1F4D46","#C4895A","#6F7F73","#4A8EC2","#9B59B6","#E74C3C"];
+const COLORS = ["#00704A","#CBA258","#6F7F73","#4A8EC2","#9B59B6","#E74C3C"];
 
 function color(name) {
   let h = 0;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, DollarSign, Phone, Mail, Calendar } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import SecaoInfo from "../components/SecaoInfo";
 import adminApi from "../services/api";
 import toast from "react-hot-toast";
 
@@ -116,22 +117,30 @@ export default function Comercial() {
     ? { color: "text-emerald-600", bar: "bg-emerald-500", bg: "bg-emerald-50 border-emerald-200",  label: "Meta atingida!" }
     : convPct >= META * 0.7
     ? { color: "text-amber-600",   bar: "bg-amber-400",   bg: "bg-amber-50 border-amber-200",    label: "Quase lá"       }
-    : { color: "text-[#1F4D46]",   bar: "bg-[#1F4D46]",   bg: "bg-[#F5F1EA] border-[#D8CDB9]",  label: `Meta: ${META}%` };
+    : { color: "text-[#00704A]",   bar: "bg-[#00704A]",   bg: "bg-[#F2F0EB] border-[#DDD8CC]",  label: `Meta: ${META}%` };
 
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#1F4D46]">Comercial</h1>
+          <h1 className="text-2xl font-bold text-[#00704A]">Comercial</h1>
           <p className="text-gray-400 text-sm mt-0.5">{leads.length} lead{leads.length !== 1 ? "s" : ""} no pipeline</p>
         </div>
         <button
           onClick={() => { setForm(EMPTY_FORM); setEditId(null); setShowForm((v) => !v); }}
-          className="bg-[#1F4D46] hover:bg-[#285A50] text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
+          className="bg-[#00704A] hover:bg-[#1E3932] text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition"
         >
           <Plus size={15} /> Novo lead
         </button>
       </div>
+
+      <SecaoInfo itens={[
+        { nome: "Pipeline (Kanban)", desc: "Funil de vendas em 6 estágios: Prospecto, Contato, Demo, Proposta, Fechado e Perdido. Mova os leads entre as etapas." },
+        { nome: "Cadastro de lead", desc: "Registre nome, clínica, contato, origem, MRR estimado e data de follow-up de cada potencial cliente." },
+        { nome: "Taxa de conversão", desc: "Mede fechados ÷ (fechados + perdidos). Meta de 30%, com barra mostrando quanto falta para atingir." },
+        { nome: "Valor do pipeline", desc: "Soma o MRR estimado dos leads ativos e o MRR já fechado, para projetar receita futura." },
+        { nome: "Follow-up", desc: "Marque a próxima data de contato; o card destaca os leads que precisam de acompanhamento." },
+      ]} />
 
       {/* Barra de conversão */}
       <div className={`border rounded-2xl px-5 py-4 mb-5 ${convCfg.bg}`}>
@@ -191,17 +200,17 @@ export default function Comercial() {
           { label: "Pipeline (MRR est.)", value: fmt(pipelineValue) ?? "R$ 0" },
           { label: "Fechados (MRR)",      value: fmt(totalValue)   ?? "R$ 0" },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white border border-[#E8E0D2] rounded-2xl p-4">
+          <div key={label} className="bg-white border border-[#E6E2D8] rounded-2xl p-4">
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{label}</p>
-            <p className="text-2xl font-black text-[#1F4D46]">{value}</p>
+            <p className="text-2xl font-black text-[#00704A]">{value}</p>
           </div>
         ))}
       </div>
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white border border-[#E8E0D2] rounded-2xl p-5 mb-6">
-          <h3 className="text-sm font-bold text-[#1F4D46] mb-4">{editId ? "Editar lead" : "Novo lead"}</h3>
+        <div className="bg-white border border-[#E6E2D8] rounded-2xl p-5 mb-6">
+          <h3 className="text-sm font-bold text-[#00704A] mb-4">{editId ? "Editar lead" : "Novo lead"}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
             {[
               { key: "name",      label: "Nome *",       type: "text"  },
@@ -217,7 +226,7 @@ export default function Comercial() {
                   type={type}
                   value={form[key]}
                   onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                  className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm focus:outline-none"
+                  className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm focus:outline-none"
                 />
               </div>
             ))}
@@ -226,7 +235,7 @@ export default function Comercial() {
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Origem</label>
               <select value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
-                className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                 <option value="">Selecionar…</option>
                 {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -234,19 +243,19 @@ export default function Comercial() {
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Estágio</label>
               <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+                className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
                 {PIPELINE.map((s) => <option key={s} value={s}>{STAGE_CFG[s].label}</option>)}
               </select>
             </div>
           </div>
           <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
             placeholder="Notas…" rows={2}
-            className="w-full border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm focus:outline-none resize-none mb-3" />
+            className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm focus:outline-none resize-none mb-3" />
           <div className="flex gap-2 justify-end">
             <button onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }}
               className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-xl transition">Cancelar</button>
             <button onClick={save} disabled={saving}
-              className="bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-50 text-white px-5 py-2 rounded-xl text-sm font-medium transition">
+              className="bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-50 text-white px-5 py-2 rounded-xl text-sm font-medium transition">
               {saving ? "Salvando…" : editId ? "Salvar" : "Criar lead"}
             </button>
           </div>
@@ -256,24 +265,24 @@ export default function Comercial() {
       {/* Kanban */}
       {loading ? (
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          {PIPELINE.map((s) => <div key={s} className="h-40 bg-white rounded-2xl animate-pulse border border-[#E8E0D2]" />)}
+          {PIPELINE.map((s) => <div key={s} className="h-40 bg-white rounded-2xl animate-pulse border border-[#E6E2D8]" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {PIPELINE.map((stage) => {
             const cfg = STAGE_CFG[stage];
             return (
-              <div key={stage} className="bg-white border border-[#E8E0D2] rounded-2xl overflow-hidden">
-                <div className={`px-3 py-2.5 border-b border-[#F0EBE3] flex items-center gap-1.5`}>
+              <div key={stage} className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
+                <div className={`px-3 py-2.5 border-b border-[#E6E2D8] flex items-center gap-1.5`}>
                   <div className={`w-2 h-2 rounded-full ${cfg.bar}`} />
                   <span className="text-xs font-semibold text-gray-700">{cfg.label}</span>
                   <span className="ml-auto text-xs text-gray-400">{grouped[stage].length}</span>
                 </div>
                 <div className="p-2 space-y-2 min-h-24">
                   {grouped[stage].map((lead) => (
-                    <div key={lead.id} className="bg-[#F5F1EA] border border-[#E8E0D2] rounded-xl p-2.5 group">
+                    <div key={lead.id} className="bg-[#F2F0EB] border border-[#E6E2D8] rounded-xl p-2.5 group">
                       <div className="flex items-start justify-between gap-1 mb-1.5">
-                        <button onClick={() => openEdit(lead)} className="text-xs font-semibold text-[#1F4D46] text-left hover:underline leading-tight">
+                        <button onClick={() => openEdit(lead)} className="text-xs font-semibold text-[#00704A] text-left hover:underline leading-tight">
                           {lead.name}
                         </button>
                         <button onClick={() => remove(lead.id)} className="opacity-0 group-hover:opacity-100 transition text-gray-300 hover:text-red-400 shrink-0">
@@ -296,9 +305,9 @@ export default function Comercial() {
                       </div>
                       <div className="flex gap-1 mt-2">
                         <button onClick={() => moveStage(lead, -1)} disabled={PIPELINE.indexOf(lead.status) === 0}
-                          className="flex-1 text-[10px] text-gray-400 hover:text-[#1F4D46] disabled:opacity-20 transition">← </button>
+                          className="flex-1 text-[10px] text-gray-400 hover:text-[#00704A] disabled:opacity-20 transition">← </button>
                         <button onClick={() => moveStage(lead, +1)} disabled={PIPELINE.indexOf(lead.status) === PIPELINE.length - 1}
-                          className="flex-1 text-[10px] text-gray-400 hover:text-[#1F4D46] disabled:opacity-20 transition text-right"> →</button>
+                          className="flex-1 text-[10px] text-gray-400 hover:text-[#00704A] disabled:opacity-20 transition text-right"> →</button>
                       </div>
                     </div>
                   ))}

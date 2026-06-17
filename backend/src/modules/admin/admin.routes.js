@@ -51,6 +51,11 @@ router.get("/financial/billing",                    (req, res) => forward(req, r
 router.patch("/financial/billing/:id/cycle",        (req, res) => forward(req, res, `/admin/financial/billing/${req.params.id}/cycle`, "PATCH"));
 router.get("/financial/entries",            (req, res) => forward(req, res, `/admin/financial/entries?${new URLSearchParams(req.query)}`));
 router.get("/financial/recorrentes",        (req, res) => forward(req, res, "/admin/financial/recorrentes"));
+
+// Estimativas do Planejamento Financeiro
+router.get("/financial/estimates",          (req, res) => forward(req, res, "/admin/financial/estimates"));
+router.post("/financial/estimates",         (req, res) => forward(req, res, "/admin/financial/estimates", "POST"));
+router.delete("/financial/estimates/:id",   (req, res) => forward(req, res, `/admin/financial/estimates/${req.params.id}`, "DELETE"));
 router.post("/financial/entries",           (req, res) => forward(req, res, "/admin/financial/entries", "POST"));
 router.patch("/financial/entries/:id",      (req, res) => forward(req, res, `/admin/financial/entries/${req.params.id}`, "PATCH"));
 router.delete("/financial/entries/:id",     (req, res) => forward(req, res, `/admin/financial/entries/${req.params.id}`, "DELETE"));

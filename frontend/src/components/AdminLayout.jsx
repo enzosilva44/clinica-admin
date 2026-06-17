@@ -16,14 +16,22 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex bg-[#F5F1EA]">
+    <div className="min-h-screen flex bg-[#F2F0EB]">
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 bg-[#1F4D46] flex flex-col">
+      <aside className="w-56 shrink-0 bg-[#00704A] flex flex-col">
         <div className="px-5 py-5 border-b border-white/10">
-          <p className="text-white font-bold text-lg tracking-wide">
-            Iaso<span className="text-[#C2A56B]">Clin</span>
-          </p>
-          <p className="text-white/40 text-xs mt-0.5">Admin Panel</p>
+          <div className="flex items-center gap-2">
+            <svg viewBox="0 0 56 80" fill="none" className="w-5 h-7">
+              <line x1="14" y1="7"  x2="42" y2="7"  stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
+              <line x1="28" y1="7"  x2="28" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
+              <line x1="14" y1="73" x2="42" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
+              <path d="M28 32 Q40 14 44 12 Q46 22 38 28 Q34 31 28 32 Z" fill="#CBA258" opacity="0.85" />
+            </svg>
+            <span className="text-lg font-bold">
+              <span className="text-white">Iaso</span><span className="text-[#CBA258]">clin</span>
+            </span>
+          </div>
+          <p className="text-white/40 text-xs mt-1">Admin Panel</p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5">

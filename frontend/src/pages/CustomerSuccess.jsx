@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HeartHandshake, MessageSquarePlus, Trash2, X, ChevronDown, Info, UserX, UserCheck } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import SecaoInfo from "../components/SecaoInfo";
 import adminApi from "../services/api";
 import toast from "react-hot-toast";
 
@@ -43,33 +44,33 @@ function ScorePopover({ clinic: c, cfg }) {
         onClick={() => setOpen((v) => !v)}
         className="group flex flex-col items-center gap-1 hover:opacity-80 transition"
       >
-        <span className={`text-base font-black ${open ? "text-[#1F4D46]" : "text-[#1F4D46]"} group-hover:underline underline-offset-2`}>
+        <span className={`text-base font-black ${open ? "text-[#00704A]" : "text-[#00704A]"} group-hover:underline underline-offset-2`}>
           {c.score}
         </span>
-        <div className="w-12 h-1.5 bg-[#F0EBE3] rounded-full overflow-hidden">
+        <div className="w-12 h-1.5 bg-[#E6E2D8] rounded-full overflow-hidden">
           <div className={`h-full rounded-full ${cfg.bar}`} style={{ width: `${c.score}%` }} />
         </div>
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-64 bg-white border border-[#E8E0D2] rounded-2xl shadow-2xl p-4">
+        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-64 bg-white border border-[#E6E2D8] rounded-2xl shadow-2xl p-4">
           {/* Arrow */}
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-[#E8E0D2] rotate-45" />
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-[#E6E2D8] rotate-45" />
 
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#1F4D46]">Detalhamento do score</p>
+            <p className="text-xs font-bold text-[#00704A]">Detalhamento do score</p>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
           </div>
 
           {/* Base */}
-          <div className="flex justify-between text-xs py-1.5 border-b border-[#F0EBE3]">
+          <div className="flex justify-between text-xs py-1.5 border-b border-[#E6E2D8]">
             <span className="text-gray-500">{isEarly ? "Base (fase early)" : "Base (fase estabelecida)"}</span>
-            <span className="font-bold text-[#1F4D46]">{baseScore}</span>
+            <span className="font-bold text-[#00704A]">{baseScore}</span>
           </div>
 
           {/* Bonuses */}
           {bonuses.length > 0 && bonuses.map((b, i) => (
-            <div key={i} className="flex justify-between text-xs py-1.5 border-b border-[#F0EBE3]">
+            <div key={i} className="flex justify-between text-xs py-1.5 border-b border-[#E6E2D8]">
               <span className="text-gray-600 leading-tight">{b.label}</span>
               <span className="font-semibold text-green-600 shrink-0 ml-2">+{b.pts}</span>
             </div>
@@ -77,7 +78,7 @@ function ScorePopover({ clinic: c, cfg }) {
 
           {/* Penalties */}
           {penalties.length > 0 && penalties.map((b, i) => (
-            <div key={i} className="flex justify-between text-xs py-1.5 border-b border-[#F0EBE3]">
+            <div key={i} className="flex justify-between text-xs py-1.5 border-b border-[#E6E2D8]">
               <span className="text-gray-600 leading-tight">{b.label}</span>
               <span className="font-semibold text-red-500 shrink-0 ml-2">{b.pts}</span>
             </div>
@@ -90,12 +91,12 @@ function ScorePopover({ clinic: c, cfg }) {
 
           {/* Total */}
           <div className="flex justify-between text-sm pt-2 mt-1">
-            <span className="font-bold text-[#1F4D46]">Score final</span>
-            <span className="font-black text-[#1F4D46]">{c.score} / 100</span>
+            <span className="font-bold text-[#00704A]">Score final</span>
+            <span className="font-black text-[#00704A]">{c.score} / 100</span>
           </div>
 
           {/* Progress */}
-          <div className="mt-2 h-2 bg-[#F0EBE3] rounded-full overflow-hidden">
+          <div className="mt-2 h-2 bg-[#E6E2D8] rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${cfg.bar} transition-all`} style={{ width: `${c.score}%` }} />
           </div>
         </div>
@@ -187,13 +188,23 @@ export default function CustomerSuccess() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1F4D46]">Customer Success</h1>
+        <h1 className="text-2xl font-bold text-[#00704A]">Customer Success</h1>
         <p className="text-gray-400 text-sm mt-0.5">Saúde e engajamento das clínicas</p>
       </div>
 
+      <SecaoInfo itens={[
+        { nome: "Health Score", desc: "Pontuação de 0 a 100 da saúde de cada clínica. Clique no número para ver como foi calculado (bônus e penalidades por fase)." },
+        { nome: "Fases do cliente", desc: "Novo (<7 dias, sem score), Early (7–30 dias, sobe com uso) e Estabelecida (>30 dias, cai por inatividade)." },
+        { nome: "Faixas de risco", desc: "80+ Saudável, 60–79 Regular, 40–59 Atenção, <40 Em risco. Clique nos cards para filtrar." },
+        { nome: "Churn real", desc: "Mede cancelamentos efetivos no mês (não risco). Meta abaixo de 5%. Onboarding e plano dev ficam fora do cálculo." },
+        { nome: "Login e atividade", desc: "Mostra último login, total de acessos e agendamentos nos últimos 30/60 dias de cada clínica." },
+        { nome: "Notas e cancelamento", desc: "Registre notas de acompanhamento por clínica (onboarding, churn, upsell) e marque/reative cancelamentos." },
+      ]} />
+
+
       {/* Churn bar */}
       {!loading && total === 0 && clinics.length > 0 && (
-        <div className="bg-[#F5F1EA] border border-[#D8CDB9] rounded-2xl px-5 py-4 mb-5 text-center">
+        <div className="bg-[#F2F0EB] border border-[#DDD8CC] rounded-2xl px-5 py-4 mb-5 text-center">
           <p className="text-sm text-gray-500">Nenhuma clínica com mais de 30 dias de uso ainda.</p>
           <p className="text-xs text-gray-400 mt-0.5">O indicador de churn aparece após o período de onboarding.</p>
         </div>
@@ -236,18 +247,18 @@ export default function CustomerSuccess() {
           <button
             key={key}
             onClick={() => setFilterRisk(filterRisk === key ? "" : key)}
-            className={`bg-white border rounded-2xl p-4 text-left transition ${filterRisk === key ? "border-[#1F4D46] shadow-sm" : "border-[#E8E0D2] hover:border-[#C2A56B]"}`}
+            className={`bg-white border rounded-2xl p-4 text-left transition ${filterRisk === key ? "border-[#00704A] shadow-sm" : "border-[#E6E2D8] hover:border-[#CBA258]"}`}
           >
-            <p className="text-2xl font-black text-[#1F4D46]">{counts[key]}</p>
+            <p className="text-2xl font-black text-[#00704A]">{counts[key]}</p>
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full mt-1 inline-block ${cfg.badge}`}>{cfg.label}</span>
           </button>
         ))}
         {/* Onboarding card */}
         <button
           onClick={() => setFilterRisk(filterRisk === "onboarding" ? "" : "onboarding")}
-          className={`bg-white border rounded-2xl p-4 text-left transition ${filterRisk === "onboarding" ? "border-[#1F4D46] shadow-sm" : "border-[#E8E0D2] hover:border-[#C2A56B]"}`}
+          className={`bg-white border rounded-2xl p-4 text-left transition ${filterRisk === "onboarding" ? "border-[#00704A] shadow-sm" : "border-[#E6E2D8] hover:border-[#CBA258]"}`}
         >
-          <p className="text-2xl font-black text-[#1F4D46]">{onboarding.length}</p>
+          <p className="text-2xl font-black text-[#00704A]">{onboarding.length}</p>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full mt-1 inline-block bg-blue-50 text-blue-600">
             Em onboarding
           </span>
@@ -256,7 +267,7 @@ export default function CustomerSuccess() {
         {/* Cancelados card */}
         <button
           onClick={() => setFilterRisk(filterRisk === "cancelado" ? "" : "cancelado")}
-          className={`bg-white border rounded-2xl p-4 text-left transition ${filterRisk === "cancelado" ? "border-red-400 shadow-sm" : "border-[#E8E0D2] hover:border-red-200"}`}
+          className={`bg-white border rounded-2xl p-4 text-left transition ${filterRisk === "cancelado" ? "border-red-400 shadow-sm" : "border-[#E6E2D8] hover:border-red-200"}`}
         >
           <p className="text-2xl font-black text-red-500">{canceled.length}</p>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full mt-1 inline-block bg-red-50 text-red-600">
@@ -270,7 +281,7 @@ export default function CustomerSuccess() {
       <div className="mb-5">
         <button
           onClick={() => setShowScore((v) => !v)}
-          className="flex items-center gap-2 text-xs text-gray-400 hover:text-[#1F4D46] transition"
+          className="flex items-center gap-2 text-xs text-gray-400 hover:text-[#00704A] transition"
         >
           <Info size={13} />
           Como o score de saúde é calculado
@@ -278,8 +289,8 @@ export default function CustomerSuccess() {
         </button>
 
         {showScore && (
-          <div className="mt-3 bg-[#F5F1EA] border border-[#D8CDB9] rounded-2xl p-5">
-            <p className="text-xs font-bold text-[#1F4D46] mb-3">Score de saúde — lógica por fase</p>
+          <div className="mt-3 bg-[#F2F0EB] border border-[#DDD8CC] rounded-2xl p-5">
+            <p className="text-xs font-bold text-[#00704A] mb-3">Score de saúde — lógica por fase</p>
 
             {/* Fase: Novo */}
             <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
@@ -304,8 +315,8 @@ export default function CustomerSuccess() {
             </div>
 
             {/* Fase: Estabelecida */}
-            <div className="mb-4 p-3 bg-[#F5F1EA] border border-[#D8CDB9] rounded-xl">
-              <p className="text-xs font-semibold text-[#1F4D46] mb-2">🏢 Estabelecida — &gt; 30 dias</p>
+            <div className="mb-4 p-3 bg-[#F2F0EB] border border-[#DDD8CC] rounded-xl">
+              <p className="text-xs font-semibold text-[#00704A] mb-2">🏢 Estabelecida — &gt; 30 dias</p>
               <p className="text-[11px] text-gray-500 mb-2">Começa em <strong>100</strong>. Penalidades por inatividade:</p>
               {[
                 { cond: "0 agendamentos nos últimos 30 dias",    pts: "−40" },
@@ -314,7 +325,7 @@ export default function CustomerSuccess() {
                 { cond: "Sem login há mais de 30 dias",          pts: "−30" },
                 { cond: "Sem login há mais de 14 dias",          pts: "−15" },
               ].map(({ cond, pts }) => (
-                <div key={cond} className="flex justify-between text-[11px] py-1 border-b border-[#E8E0D2] last:border-0">
+                <div key={cond} className="flex justify-between text-[11px] py-1 border-b border-[#E6E2D8] last:border-0">
                   <span className="text-gray-600">{cond}</span>
                   <span className="font-semibold text-red-500">{pts}</span>
                 </div>
@@ -341,12 +352,12 @@ export default function CustomerSuccess() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-[#E8E0D2] rounded-2xl overflow-hidden">
+      <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-gray-400 text-sm">Carregando…</div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-[#F5F1EA] text-xs text-gray-500 uppercase tracking-wide">
+            <thead className="bg-[#F2F0EB] text-xs text-gray-500 uppercase tracking-wide">
               <tr>
                 <th className="text-left px-5 py-3">Clínica</th>
                 <th className="text-left px-5 py-3">Plano</th>
@@ -367,7 +378,7 @@ export default function CustomerSuccess() {
                   <>
                     <tr
                       key={c.id}
-                      className={`border-t border-[#F0EBE3] hover:bg-[#FDFCFA] transition cursor-pointer group ${isOpen ? "bg-[#FDFCFA]" : ""} ${c.canceledAt ? "opacity-50" : ""}`}
+                      className={`border-t border-[#E6E2D8] hover:bg-[#F2F0EB] transition cursor-pointer group ${isOpen ? "bg-[#F2F0EB]" : ""} ${c.canceledAt ? "opacity-50" : ""}`}
                       onClick={() => setExpanded(isOpen ? null : c.id)}
                     >
                       <td className="px-5 py-3.5 font-medium text-gray-800">
@@ -408,7 +419,7 @@ export default function CustomerSuccess() {
                           <span className="text-xs text-gray-300">—</span>
                         ) : (
                           <div>
-                            <p className={`text-sm font-bold ${c.aptsLast30 === 0 ? "text-red-500" : c.aptsLast30 < 3 ? "text-amber-500" : "text-[#1F4D46]"}`}>
+                            <p className={`text-sm font-bold ${c.aptsLast30 === 0 ? "text-red-500" : c.aptsLast30 < 3 ? "text-amber-500" : "text-[#00704A]"}`}>
                               {c.aptsLast30 ?? 0}
                             </p>
                             <p className="text-[10px] text-gray-400">{c.aptsLast60 ?? 0} em 60d</p>
@@ -447,7 +458,7 @@ export default function CustomerSuccess() {
                     {/* Notes panel */}
                     {isOpen && (
                       <tr key={`${c.id}-notes`}>
-                        <td colSpan={8} className="p-0 bg-[#FDFCFA] border-t border-[#F0EBE3]">
+                        <td colSpan={8} className="p-0 bg-[#F2F0EB] border-t border-[#E6E2D8]">
                           <div className="px-5 py-4">
                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                               <HeartHandshake size={13} /> Notas CS
@@ -458,7 +469,7 @@ export default function CustomerSuccess() {
                               <select
                                 value={noteForm.type}
                                 onChange={(e) => setNoteForm((f) => ({ ...f, type: e.target.value }))}
-                                className="border border-[#D8CDB9] rounded-xl px-3 py-2 text-xs bg-white focus:outline-none shrink-0"
+                                className="border border-[#DDD8CC] rounded-xl px-3 py-2 text-xs bg-white focus:outline-none shrink-0"
                               >
                                 {NOTE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                               </select>
@@ -467,12 +478,12 @@ export default function CustomerSuccess() {
                                 onChange={(e) => setNoteForm((f) => ({ ...f, content: e.target.value }))}
                                 onKeyDown={(e) => e.key === "Enter" && addNote(c.id)}
                                 placeholder="Adicionar nota… (Enter para salvar)"
-                                className="flex-1 border border-[#D8CDB9] rounded-xl px-3 py-2 text-sm focus:outline-none"
+                                className="flex-1 border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm focus:outline-none"
                               />
                               <button
                                 onClick={() => addNote(c.id)}
                                 disabled={savingNote || !noteForm.content.trim()}
-                                className="bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-40 text-white px-3 py-2 rounded-xl transition"
+                                className="bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-40 text-white px-3 py-2 rounded-xl transition"
                               >
                                 <MessageSquarePlus size={14} />
                               </button>
@@ -484,8 +495,8 @@ export default function CustomerSuccess() {
                             ) : (
                               <div className="space-y-2">
                                 {c.notes.map((n) => (
-                                  <div key={n.id} className="flex items-start gap-2 bg-white border border-[#E8E0D2] rounded-xl px-3.5 py-2.5">
-                                    <span className="text-[10px] bg-[#E8E0D2] text-gray-600 px-2 py-0.5 rounded-full font-medium shrink-0 mt-0.5">{n.type}</span>
+                                  <div key={n.id} className="flex items-start gap-2 bg-white border border-[#E6E2D8] rounded-xl px-3.5 py-2.5">
+                                    <span className="text-[10px] bg-[#E6E2D8] text-gray-600 px-2 py-0.5 rounded-full font-medium shrink-0 mt-0.5">{n.type}</span>
                                     <p className="text-sm text-gray-700 flex-1">{n.content}</p>
                                     <div className="flex items-center gap-2 shrink-0">
                                       <span className="text-[10px] text-gray-400">{relDate(n.createdAt)}</span>

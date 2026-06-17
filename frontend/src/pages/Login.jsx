@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Eye, EyeOff, Shield } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 
-const INPUT = "w-full border border-[#D8CDB9] bg-[#FDFCFA] rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#1F4D46]/20 focus:border-[#1F4D46] transition";
+const INPUT = "w-full border border-[#DDD8CC] bg-[#F2F0EB] rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00704A]/20 focus:border-[#00704A] transition";
 
 export default function Login() {
   const { adminLogin } = useAdminAuth();
@@ -25,21 +25,24 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1F4D46] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#00704A] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl px-8 py-10">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-2xl bg-[#1F4D46] flex items-center justify-center">
-            <Shield size={20} className="text-[#C2A56B]" />
-          </div>
+        <div className="flex items-center justify-center gap-2.5 mb-8">
+          <svg viewBox="0 0 56 80" fill="none" className="w-6 h-8">
+            <line x1="14" y1="7"  x2="42" y2="7"  stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
+            <line x1="28" y1="7"  x2="28" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
+            <line x1="14" y1="73" x2="42" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
+            <path d="M28 32 Q40 14 44 12 Q46 22 38 28 Q34 31 28 32 Z" fill="#CBA258" opacity="0.85" />
+          </svg>
           <div>
-            <p className="text-lg font-bold text-[#1F4D46]">
-              Iaso<span className="text-[#C2A56B]">Clin</span>
+            <p className="text-lg font-bold">
+              <span className="text-[#00704A]">Iaso</span><span className="text-[#CBA258]">clin</span>
             </p>
             <p className="text-[11px] text-gray-400 -mt-0.5">Painel Administrativo</p>
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-[#1F4D46] mb-1">Acesso restrito</h2>
+        <h2 className="text-xl font-bold text-[#00704A] mb-1">Acesso restrito</h2>
         <p className="text-xs text-gray-400 mb-7">Apenas administradores do sistema.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,7 +64,7 @@ export default function Login() {
             </div>
           </div>
           <button type="submit" disabled={loading}
-            className="w-full bg-[#1F4D46] hover:bg-[#285A50] disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-sm transition mt-2">
+            className="w-full bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-sm transition mt-2">
             {loading ? "Entrando…" : "Entrar no painel"}
           </button>
         </form>
