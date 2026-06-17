@@ -52,6 +52,7 @@ export const PREMISSAS_PADRAO = {
   caixaMultiplicador: 1.5,
   provisaoTributaria: 0.10,
   churnBuffer: 0.10,
+  caixaAtual: 0, // quanto já está reservado em caixa hoje (R$)
 
   // Asaas rev share (conservador)
   asaasTicketProc: 150,
@@ -121,13 +122,24 @@ export function ebitdaPct(p, n) {
 }
 
 // ── Política de caixa ─────────────────────────────────────────────────────────
+// Caixa mínimo é a RESERVA-ALVO (estoque), não uma despesa mensal: representa
+// quanto precisa estar guardado para cobrir X meses de gasto + buffer de churn.
 export function caixaMinimo(p, n) {
   return totalCustosFixos(p) * p.caixaMultiplicador
     + receitaTotal(p, n) * p.churnBuffer;
 }
 
+// Quanto ainda falta reservar para atingir o caixa mínimo, dado o caixa atual.
+// Uma vez atingida a meta, não há mais nada a reter (libera o lucro).
+export function faltaReservar(p, n) {
+  return Math.max(0, caixaMinimo(p, n) - (p.caixaAtual ?? 0));
+}
+
+// Disponível para distribuir: EBITDA menos impostos, menos APENAS o que ainda
+// falta reservar este mês (não desconta o caixa mínimo inteiro todo mês).
 export function lucroDisponivel(p, n) {
-  return Math.max(0, ebitda(p, n) - caixaMinimo(p, n) * (1 + p.provisaoTributaria));
+  const liquido = ebitda(p, n) * (1 - p.provisaoTributaria);
+  return Math.max(0, liquido - faltaReservar(p, n));
 }
 
 export function ficaNaEmpresa(p, n) {

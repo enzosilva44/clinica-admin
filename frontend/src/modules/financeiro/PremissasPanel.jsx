@@ -149,7 +149,9 @@ export default function PremissasPanel({ premissas, setPremissas, onSave, dirty,
 
         <Secao titulo="Política de Caixa">
           <Campo label="Multiplicador CF" value={p.caixaMultiplicador} onChange={set("caixaMultiplicador")} suffix="×" step="0.1"
-            tooltip="A empresa retém X vezes os custos fixos mensais antes de distribuir. Padrão conservador: 1,5×" />
+            tooltip="A reserva-alvo é X vezes os custos fixos mensais. É um estoque (guardado uma vez), não um custo mensal. Padrão conservador: 1,5×" />
+          <Campo label="Caixa atual" value={p.caixaAtual} onChange={set("caixaAtual")} suffix="R$" step="100"
+            tooltip="Quanto já está reservado em caixa hoje. Enquanto for menor que a reserva-alvo, o sistema retém o que falta antes de distribuir. Atingida a meta, libera o lucro." />
           <Campo label="Provisão tributária" value={getPct("provisaoTributaria")} onChange={setPct("provisaoTributaria")} suffix="%"
             tooltip="Percentual reservado para impostos sobre distribuição de lucros" />
           <Campo label="Churn buffer" value={getPct("churnBuffer")} onChange={setPct("churnBuffer")} suffix="%"

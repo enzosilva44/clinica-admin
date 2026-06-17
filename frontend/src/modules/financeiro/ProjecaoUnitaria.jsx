@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   ticketMedio, mrr, revShareAsaas, receitaTotal, custosVariaveis,
-  totalCustosFixos, ebitda, ebitdaPct, caixaMinimo, lucroDisponivel,
+  totalCustosFixos, ebitda, ebitdaPct, caixaMinimo, faltaReservar, lucroDisponivel,
 } from "./calculadora";
 
 const fmt = (n) =>
@@ -33,7 +33,8 @@ export default function ProjecaoUnitaria({ premissas }) {
         receitaTot: receitaTotal(premissas, n),
         resultado: ebitda(premissas, n),
         margem: ebitdaPct(premissas, n),
-        caixaMin: caixaMinimo(premissas, n),
+        reservaAlvo: caixaMinimo(premissas, n),
+        faltaReservar: faltaReservar(premissas, n),
         disponivel: lucroDisponivel(premissas, n),
       };
     });
@@ -81,7 +82,7 @@ export default function ProjecaoUnitaria({ premissas }) {
               <th className="bg-[#00704A] px-3 py-1.5" rowSpan={2}>Clientes</th>
               <th className="bg-red-500/90 px-3 py-1.5 border-l border-white/20" colSpan={3}>Custos</th>
               <th className="bg-[#00704A] px-3 py-1.5 border-l border-white/20" colSpan={3}>Receita</th>
-              <th className="bg-[#1E3932] px-3 py-1.5 border-l border-white/20" colSpan={4}>Resultado</th>
+              <th className="bg-[#1E3932] px-3 py-1.5 border-l border-white/20" colSpan={5}>Resultado</th>
             </tr>
             {/* Linha de colunas */}
             <tr className="bg-[#FAFAF9] text-[10px] text-gray-400 uppercase tracking-wide">
@@ -93,7 +94,8 @@ export default function ProjecaoUnitaria({ premissas }) {
               <th className={`${th} text-right`}>Total</th>
               <th className={`${th} text-right border-l border-[#E6E2D8]`}>EBITDA</th>
               <th className={`${th} text-center`}>Margem</th>
-              <th className={`${th} text-right`}>Caixa mín.</th>
+              <th className={`${th} text-right`}>Reserva-alvo</th>
+              <th className={`${th} text-right`}>Falta reservar</th>
               <th className={`${th} text-right`}>Disponível</th>
             </tr>
           </thead>
@@ -115,7 +117,8 @@ export default function ProjecaoUnitaria({ premissas }) {
                   {/* Resultado */}
                   <td className={`${td} font-semibold ${corRes} border-l border-[#E6E2D8]`}>{fmt(l.resultado)}</td>
                   <td className={`px-3 py-2.5 text-center font-bold ${corRes}`}>{pct(l.margem)}</td>
-                  <td className={`${td} text-gray-500`}>{fmt(l.caixaMin)}</td>
+                  <td className={`${td} text-gray-500`}>{fmt(l.reservaAlvo)}</td>
+                  <td className={`${td} ${l.faltaReservar > 0 ? "text-amber-600" : "text-gray-300"}`}>{l.faltaReservar > 0 ? fmt(l.faltaReservar) : "✓"}</td>
                   <td className={`${td} font-medium text-[#00704A]`}>{l.disponivel > 0 ? fmt(l.disponivel) : "—"}</td>
                 </tr>
               );
@@ -123,8 +126,10 @@ export default function ProjecaoUnitaria({ premissas }) {
           </tbody>
         </table>
       </div>
-      <div className="px-5 py-2.5 border-t border-[#E6E2D8] bg-[#FAFAF9] text-[11px] text-gray-400">
-        <span className="font-medium text-gray-500">Disponível</span> = quanto sobra do EBITDA para distribuir entre os sócios, depois de reservar o caixa mínimo e a provisão de impostos.
+      <div className="px-5 py-2.5 border-t border-[#E6E2D8] bg-[#FAFAF9] text-[11px] text-gray-400 leading-relaxed">
+        <span className="font-medium text-gray-500">Reserva-alvo</span> = quanto precisa estar guardado em caixa (estoque, não custo mensal). {" "}
+        <span className="font-medium text-gray-500">Falta reservar</span> = reserva-alvo − caixa atual (informado nas premissas); "✓" quando a meta já foi atingida. {" "}
+        <span className="font-medium text-gray-500">Disponível</span> = EBITDA − impostos − o que ainda falta reservar. Atingida a reserva, o lucro é liberado quase inteiro para distribuição.
       </div>
     </div>
   );
