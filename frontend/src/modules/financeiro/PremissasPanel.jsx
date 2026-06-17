@@ -55,7 +55,7 @@ function Secao({ titulo, children, subtotal, defaultOpen = false }) {
   );
 }
 
-export default function PremissasPanel({ premissas, setPremissas, onSave, dirty }) {
+export default function PremissasPanel({ premissas, setPremissas, onSave, dirty, salvando }) {
   const p = premissas;
   const set = (campo) => (val) => setPremissas({ ...p, [campo]: val === "" ? "" : val });
 
@@ -77,10 +77,10 @@ export default function PremissasPanel({ premissas, setPremissas, onSave, dirty 
             className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#DDD8CC] text-gray-400 hover:text-[#00704A] transition">
             <RotateCcw size={12} />
           </button>
-          <button onClick={onSave}
-            className="relative flex items-center gap-1 bg-[#00704A] hover:bg-[#1E3932] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
-            <Save size={12} /> Salvar
-            {dirty && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border border-white" />}
+          <button onClick={onSave} disabled={salvando}
+            className="relative flex items-center gap-1 bg-[#00704A] hover:bg-[#1E3932] disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
+            <Save size={12} /> {salvando ? "Salvando…" : "Salvar"}
+            {dirty && !salvando && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border border-white" />}
           </button>
         </div>
       </div>

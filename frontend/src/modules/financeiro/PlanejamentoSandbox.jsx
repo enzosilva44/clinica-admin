@@ -1,14 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import toast from "react-hot-toast";
+import adminApi from "../../services/api";
 import AdminLayout from "../../components/AdminLayout";
 import SecaoInfo from "../../components/SecaoInfo";
 import PremissasPanel from "./PremissasPanel";
 import Glossario from "./Glossario";
-import DistribuicaoSocios from "./DistribuicaoSocios";
 import EstimativasSalvas from "./EstimativasSalvas";
-import SimuladorTab from "./SimuladorTab";
-import CalculadoraTab from "./CalculadoraTab";
+import ProjecaoUnitaria from "./ProjecaoUnitaria";
+// Temporariamente ocultas — reativar junto com as entradas em TABS:
+// import DistribuicaoSocios from "./DistribuicaoSocios";
+// import SimuladorTab from "./SimuladorTab";
+// import CalculadoraTab from "./CalculadoraTab";
 import {
   PREMISSAS_PADRAO, MILESTONES,
   ticketMedio, totalCustosFixos, receitaTotal, ebitda, ebitdaPct,
@@ -19,34 +23,63 @@ const fmt = (n) => `R$ ${Math.round(n).toLocaleString("pt-BR")}`;
 const pct = (n) => `${(n * 100).toFixed(1)}%`;
 const STORAGE_KEY = "iaso_planejamento_premissas";
 
-function loadPremissas() {
+// Cache local apenas para render instantâneo enquanto o servidor responde.
+// A fonte de verdade é o backend (premissas oficiais, compartilhadas).
+function loadCache() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? { ...PREMISSAS_PADRAO, ...JSON.parse(raw) } : { ...PREMISSAS_PADRAO };
   } catch { return { ...PREMISSAS_PADRAO }; }
 }
 
-// Página PROVISÓRIA só para validar o painel de premissas + cálculos ao vivo.
 export default function PlanejamentoSandbox() {
-  const [premissas, setPremissas] = useState(loadPremissas);
-  const [salvo, setSalvo] = useState(loadPremissas);
+  const [premissas, setPremissas] = useState(loadCache);
+  const [salvo, setSalvo] = useState(loadCache);
+  const [salvando, setSalvando] = useState(false);
 
   const dirty = JSON.stringify(premissas) !== JSON.stringify(salvo);
 
-  function onSave() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(premissas));
-    setSalvo(premissas);
+  // Ao montar, busca as premissas oficiais do servidor (fonte de verdade).
+  useEffect(() => {
+    let ativo = true;
+    adminApi.get("/admin/financial/premissas")
+      .then((res) => {
+        if (!ativo || !res.data?.premissas) return;
+        const oficial = { ...PREMISSAS_PADRAO, ...res.data.premissas };
+        setPremissas(oficial);
+        setSalvo(oficial);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(oficial));
+      })
+      .catch(() => { /* mantém o cache local se o servidor falhar */ });
+    return () => { ativo = false; };
+  }, []);
+
+  async function onSave() {
+    setSalvando(true);
+    try {
+      const res = await adminApi.put("/admin/financial/premissas", { premissas });
+      const oficial = { ...PREMISSAS_PADRAO, ...res.data.premissas };
+      setSalvo(oficial);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(oficial));
+      toast.success("Premissas oficiais atualizadas para todos os sócios.");
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? "Erro ao salvar premissas.");
+    } finally {
+      setSalvando(false);
+    }
   }
 
   const breakEven = useMemo(() => milestoneBreakEven(premissas), [premissas]);
   const navigate = useNavigate();
-  const [tab, setTab] = useState("projecao");
+  const [tab, setTab] = useState("unitaria");
 
   const TABS = [
-    { id: "projecao",    label: "Projeção" },
-    { id: "simulador",   label: "Simulador" },
-    { id: "socios",      label: "Sócios" },
-    { id: "calculadora", label: "Calculadora" },
+    { id: "unitaria",    label: "Por cliente" },
+    // Temporariamente ocultas — reativar quando voltarem ao sistema:
+    // { id: "projecao",    label: "Projeção" },
+    // { id: "simulador",   label: "Simulador" },
+    // { id: "socios",      label: "Sócios" },
+    // { id: "calculadora", label: "Calculadora" },
   ];
 
   return (
@@ -80,7 +113,7 @@ export default function PlanejamentoSandbox() {
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* Painel de premissas */}
-        <PremissasPanel premissas={premissas} setPremissas={setPremissas} onSave={onSave} dirty={dirty} />
+        <PremissasPanel premissas={premissas} setPremissas={setPremissas} onSave={onSave} dirty={dirty} salvando={salvando} />
 
         {/* Painel direito */}
         <div className="flex-1 min-w-0 w-full space-y-4">
@@ -99,20 +132,22 @@ export default function PlanejamentoSandbox() {
             ))}
           </div>
 
-          {/* Barra de sub-abas */}
-          <div className="flex gap-1 bg-[#F2F0EB] border border-[#DDD8CC] rounded-xl p-1 w-fit">
-            {TABS.map((t) => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  tab === t.id ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-[#00704A]"
-                }`}>
-                {t.label}
-              </button>
-            ))}
-          </div>
+          {/* Barra de sub-abas — oculta enquanto só houver uma aba ativa */}
+          {TABS.length > 1 && (
+            <div className="flex gap-1 bg-[#F2F0EB] border border-[#DDD8CC] rounded-xl p-1 w-fit">
+              {TABS.map((t) => (
+                <button key={t.id} onClick={() => setTab(t.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    tab === t.id ? "bg-[#00704A] text-white" : "text-gray-500 hover:text-[#00704A]"
+                  }`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Conteúdo da aba ativa */}
-          {tab === "projecao" && (
+          {false && tab === "projecao" && (
             <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
               <div className="px-5 py-3 border-b border-[#E6E2D8] bg-[#F2F0EB]">
                 <span className="text-sm font-bold text-[#00704A]">Projeção (recalcula ao editar)</span>
@@ -149,9 +184,11 @@ export default function PlanejamentoSandbox() {
             </div>
           )}
 
+          {tab === "unitaria"    && <ProjecaoUnitaria premissas={premissas} />}
+          {/* Temporariamente ocultas — reativar junto com as entradas em TABS:
           {tab === "simulador"   && <SimuladorTab premissas={premissas} />}
           {tab === "socios"      && <DistribuicaoSocios premissas={premissas} />}
-          {tab === "calculadora" && <CalculadoraTab premissas={premissas} />}
+          {tab === "calculadora" && <CalculadoraTab premissas={premissas} />} */}
 
           {/* Estimativas salvas — comum a todas as abas */}
           <EstimativasSalvas
