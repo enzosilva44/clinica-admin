@@ -127,13 +127,16 @@ export default function AdminPanel() {
   const [loading,   setLoading]   = useState(true);
   const [editPlan,  setEditPlan]  = useState(null);
   const [expanded,  setExpanded]  = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
 
-  useEffect(() => {
+  function loadData() {
     Promise.all([adminApi.get("/admin/clinics"), adminApi.get("/admin/stats")])
       .then(([c, s]) => { setClinics(c.data); setStats(s.data); })
       .catch(() => toast.error("Erro ao carregar dados — verifique se está logado como admin"))
       .finally(() => setLoading(false));
-  }, []);
+  }
+
+  useEffect(() => { loadData(); }, []);
 
   async function changePlan(clinicId, plan) {
     try {
@@ -181,8 +184,14 @@ export default function AdminPanel() {
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-[#E6E2D8] overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-[#E6E2D8]">
+          <div className="px-6 py-4 border-b border-[#E6E2D8] flex items-center justify-between">
             <h2 className="text-base font-bold text-[#00704A]">Clínicas cadastradas</h2>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="bg-[#00704A] hover:bg-[#1E3932] text-white text-sm font-semibold px-4 py-2 rounded-xl transition"
+            >
+              + Nova clínica
+            </button>
           </div>
 
           {loading ? (
@@ -252,6 +261,103 @@ export default function AdminPanel() {
             </table>
           )}
         </div>
+
+        {showCreate && (
+          <CreateClinicModal
+            onClose={() => setShowCreate(false)}
+            onCreated={() => { setShowCreate(false); loadData(); }}
+          />
+        )}
     </AdminLayout>
+  );
+}
+
+function CreateClinicModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ name: "", email: "", clinicName: "", password: "", plan: "solo" });
+  const [saving, setSaving] = useState(false);
+
+  const PLAN_OPTIONS = [
+    { value: "demo",       label: "Demo / Trial" },
+    { value: "solo",       label: "Solo" },
+    { value: "clinica",    label: "Clínica" },
+    { value: "enterprise", label: "Enterprise" },
+    { value: "dev",        label: "Dev (tudo liberado)" },
+  ];
+
+  function set(key, value) { setForm((f) => ({ ...f, [key]: value })); }
+
+  function genPassword() {
+    const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let p = "";
+    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    set("password", p);
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.password) {
+      toast.error("Preencha nome, e-mail e senha.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminApi.post("/admin/clinics", form);
+      toast.success("Clínica criada! A pessoa deverá redefinir a senha no 1º acesso.");
+      onCreated();
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Erro ao criar clínica");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-[#00704A] mb-1">Nova clínica</h3>
+        <p className="text-xs text-gray-400 mb-5">A pessoa receberá esta senha e deverá trocá-la no primeiro acesso.</p>
+        <form onSubmit={submit} className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-gray-500">Nome do responsável *</label>
+            <input value={form.name} onChange={(e) => set("name", e.target.value)}
+              className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[#00704A]/20" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500">Nome da clínica</label>
+            <input value={form.clinicName} onChange={(e) => set("clinicName", e.target.value)}
+              className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[#00704A]/20" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500">E-mail (login) *</label>
+            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)}
+              className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[#00704A]/20" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500">Senha inicial *</label>
+            <div className="flex gap-2 mt-1">
+              <input value={form.password} onChange={(e) => set("password", e.target.value)}
+                className="flex-1 border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00704A]/20" />
+              <button type="button" onClick={genPassword}
+                className="text-xs text-[#00704A] border border-[#DDD8CC] rounded-xl px-3 hover:bg-[#F2F0EB] transition">Gerar</button>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500">Plano</label>
+            <select value={form.plan} onChange={(e) => set("plan", e.target.value)}
+              className="w-full border border-[#DDD8CC] rounded-xl px-3 py-2 text-sm mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#00704A]/20">
+              {PLAN_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose}
+              className="text-sm text-gray-500 px-4 py-2 rounded-xl hover:bg-gray-100 transition">Cancelar</button>
+            <button type="submit" disabled={saving}
+              className="bg-[#00704A] hover:bg-[#1E3932] text-white text-sm font-semibold px-4 py-2 rounded-xl transition disabled:opacity-50">
+              {saving ? "Criando…" : "Criar clínica"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
