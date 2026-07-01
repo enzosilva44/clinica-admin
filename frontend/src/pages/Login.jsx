@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
+import LogoMark from "../components/LogoMark";
 
 const INPUT = "w-full border border-[#DDD8CC] bg-[#F2F0EB] rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00704A]/20 focus:border-[#00704A] transition";
 
@@ -28,15 +29,10 @@ export default function Login() {
     <div className="min-h-screen bg-[#00704A] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl px-8 py-10">
         <div className="flex items-center justify-center gap-2.5 mb-8">
-          <svg viewBox="0 0 56 80" fill="none" className="w-6 h-8">
-            <line x1="14" y1="7"  x2="42" y2="7"  stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
-            <line x1="28" y1="7"  x2="28" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
-            <line x1="14" y1="73" x2="42" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
-            <path d="M28 32 Q40 14 44 12 Q46 22 38 28 Q34 31 28 32 Z" fill="#CBA258" opacity="0.85" />
-          </svg>
+          <LogoMark variant="color" size={30} />
           <div>
             <p className="text-lg font-bold">
-              <span className="text-[#00704A]">Iaso</span><span className="text-[#CBA258]">clin</span>
+              <span className="text-[#00704A]">Iaso</span><span className="text-[#C4895A]">clin</span>
             </p>
             <p className="text-[11px] text-gray-400 -mt-0.5">Painel Administrativo</p>
           </div>

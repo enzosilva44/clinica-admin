@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, CheckSquare, TrendingUp, HeartHandshake, Megaphone, LogOut } from "lucide-react";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import NotificationBell from "./NotificationBell";
+import LogoMark from "./LogoMark";
 
 const NAV = [
   { to: "/",          icon: LayoutDashboard, label: "Dashboard"  },
@@ -21,14 +22,9 @@ export default function AdminLayout({ children }) {
       <aside className="w-56 shrink-0 bg-[#00704A] flex flex-col">
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <svg viewBox="0 0 56 80" fill="none" className="w-5 h-7">
-              <line x1="14" y1="7"  x2="42" y2="7"  stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
-              <line x1="28" y1="7"  x2="28" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
-              <line x1="14" y1="73" x2="42" y2="73" stroke="#CBA258" strokeWidth="4" strokeLinecap="round" />
-              <path d="M28 32 Q40 14 44 12 Q46 22 38 28 Q34 31 28 32 Z" fill="#CBA258" opacity="0.85" />
-            </svg>
+            <LogoMark variant="rev" size={26} />
             <span className="text-lg font-bold">
-              <span className="text-white">Iaso</span><span className="text-[#CBA258]">clin</span>
+              <span className="text-white">Iaso</span><span className="text-[#C4895A]">clin</span>
             </span>
           </div>
           <p className="text-white/40 text-xs mt-1">Admin Panel</p>
