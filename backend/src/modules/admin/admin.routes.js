@@ -17,6 +17,7 @@ async function forward(req, res, path, method = req.method) {
 
 // Clinics
 router.get("/clinics",      (req, res) => forward(req, res, "/admin/clinics"));
+router.post("/clinics",     (req, res) => forward(req, res, "/admin/clinics", "POST"));
 router.patch("/clinics/:id",(req, res) => forward(req, res, `/admin/clinics/${req.params.id}`, "PATCH"));
 
 // Stats
