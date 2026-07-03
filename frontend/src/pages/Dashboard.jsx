@@ -19,6 +19,7 @@ const FEATURE_LABELS = {
   patients:          "Pacientes",
   procedureMap:      "Mapa de Procedimentos",
   documents:         "Documentos",
+  portfolio:         "Portfólio",
   signatures:        "Assinatura Eletrônica",
   financial:         "Financeiro",
   faturamento:       "Faturamento (Asaas)",
