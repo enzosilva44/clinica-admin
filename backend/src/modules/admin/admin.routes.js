@@ -19,9 +19,20 @@ async function forward(req, res, path, method = req.method) {
 router.get("/clinics",      (req, res) => forward(req, res, "/admin/clinics"));
 router.post("/clinics",     (req, res) => forward(req, res, "/admin/clinics", "POST"));
 router.patch("/clinics/:id",(req, res) => forward(req, res, `/admin/clinics/${req.params.id}`, "PATCH"));
+router.delete("/clinics/:id",(req, res) => forward(req, res, `/admin/clinics/${req.params.id}`, "DELETE"));
 
 // Stats
 router.get("/stats",        (req, res) => forward(req, res, "/admin/stats"));
+
+// Dashboard
+router.get("/dashboard",    (req, res) => forward(req, res, "/admin/dashboard"));
+
+// Tecnologia
+router.get("/health",         (req, res) => forward(req, res, "/admin/health"));
+router.get("/audit",          (req, res) => forward(req, res, `/admin/audit?${new URLSearchParams(req.query)}`));
+router.get("/infra/metrics",  (req, res) => forward(req, res, "/admin/infra/metrics"));
+router.get("/infra/cost",     (req, res) => forward(req, res, "/admin/infra/cost"));
+router.get("/infra/backups",  (req, res) => forward(req, res, `/admin/infra/backups?${new URLSearchParams(req.query)}`));
 
 // Team
 router.get("/team",         (req, res) => forward(req, res, "/admin/team"));
@@ -51,6 +62,8 @@ router.get("/financial",                    (req, res) => forward(req, res, "/ad
 router.get("/financial/billing",                    (req, res) => forward(req, res, "/admin/financial/billing"));
 router.patch("/financial/billing/:id/cycle",        (req, res) => forward(req, res, `/admin/financial/billing/${req.params.id}/cycle`, "PATCH"));
 router.get("/financial/entries",            (req, res) => forward(req, res, `/admin/financial/entries?${new URLSearchParams(req.query)}`));
+router.get("/financial/conciliacao",        (req, res) => forward(req, res, "/admin/financial/conciliacao"));
+router.patch("/financial/entries/:id/society",(req, res) => forward(req, res, `/admin/financial/entries/${req.params.id}/society`, "PATCH"));
 router.get("/financial/recorrentes",        (req, res) => forward(req, res, "/admin/financial/recorrentes"));
 
 // Estimativas do Planejamento Financeiro

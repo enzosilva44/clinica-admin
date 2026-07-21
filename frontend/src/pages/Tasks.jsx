@@ -7,6 +7,7 @@ import AdminLayout from "../components/AdminLayout";
 import SecaoInfo from "../components/SecaoInfo";
 import MentionTextarea from "../components/MentionTextarea";
 import AvatarComp from "../components/Avatar";
+import Celebration from "../components/Celebration";
 import adminApi from "../services/api";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import toast from "react-hot-toast";
@@ -69,7 +70,7 @@ const Avatar = AvatarComp;
 
 // ── Task Detail Drawer ────────────────────────────────────────────────────────
 
-function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
+function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete, onCelebrate }) {
   const [form, setForm]           = useState({ ...task });
   const [comment, setComment]     = useState("");
   const [sending, setSending]     = useState(false);
@@ -139,6 +140,7 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
           <button
             onClick={() => {
               const next = STATUSES[(STATUSES.indexOf(form.status) + 1) % STATUSES.length];
+              onCelebrate?.(form.status, next);
               save({ status: next });
               // log status change
               adminApi.post(`/admin/tasks/${task.id}/comments`, {
@@ -152,6 +154,9 @@ function TaskDrawer({ task, team, currentUser, onClose, onUpdate, onDelete }) {
             {(() => { const I = STATUS_CFG[form.status].icon; return <I size={20} />; })()}
           </button>
           <div className="flex-1 min-w-0">
+            {task.number != null && (
+              <span className="text-[11px] font-bold text-gray-400 block">Chamado #{String(task.number).padStart(3, "0")}</span>
+            )}
             <input
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
@@ -371,6 +376,12 @@ export default function Tasks() {
   const [myOnly,   setMyOnly]   = useState(false);
   const [filterStatus, setFilterStatus] = useState("");
   const [filterArea, setFilterModule] = useState("");
+  const [sortOrder, setSortOrder] = useState("recentes"); // "recentes" | "antigos"
+  const [celebrate, setCelebrate] = useState(false);
+
+  function celebrateIfDone(prevStatus, nextStatus) {
+    if (nextStatus === "concluido" && prevStatus !== "concluido") setCelebrate(true);
+  }
 
   async function load() {
     setLoading(true);
@@ -424,6 +435,7 @@ export default function Tasks() {
     draggingIdRef.current = null;
     setDraggingId(null);
     if (!task || task.status === targetStatus) return;
+    celebrateIfDone(task.status, targetStatus);
     // Optimistic update
     setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: targetStatus } : t));
     try {
@@ -453,6 +465,7 @@ export default function Tasks() {
   async function cycleStatus(task, e) {
     e.stopPropagation();
     const next = STATUSES[(STATUSES.indexOf(task.status) + 1) % STATUSES.length];
+    celebrateIfDone(task.status, next);
     try {
       const res = await adminApi.patch(`/admin/tasks/${task.id}`, { status: next });
       // Also log status change
@@ -465,15 +478,21 @@ export default function Tasks() {
     } catch { toast.error("Erro ao atualizar."); }
   }
 
-  const visible = tasks.filter((t) => {
-    if (filterStatus && t.status !== filterStatus) return false;
-    if (filterArea && t.area !== filterArea) return false;
-    if (myOnly && adminUser) {
-      const assignees = t.assignees ?? [];
-      return assignees.some((a) => a.id === adminUser.id || a.name === adminUser.name);
-    }
-    return true;
-  });
+  const visible = tasks
+    .filter((t) => {
+      if (filterStatus && t.status !== filterStatus) return false;
+      if (filterArea && t.area !== filterArea) return false;
+      if (myOnly && adminUser) {
+        const assignees = t.assignees ?? [];
+        return assignees.some((a) => a.id === adminUser.id || a.name === adminUser.name);
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const ka = a.number ?? new Date(a.createdAt).getTime();
+      const kb = b.number ?? new Date(b.createdAt).getTime();
+      return sortOrder === "antigos" ? ka - kb : kb - ka;
+    });
 
   const grouped = STATUSES.reduce((acc, s) => {
     acc[s] = visible.filter((t) => t.status === s);
@@ -617,8 +636,14 @@ export default function Tasks() {
           </button>
         ))}
 
-        <select value={filterArea} onChange={(e) => setFilterModule(e.target.value)}
+        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
           className="ml-auto border border-[#E6E2D8] rounded-lg px-3 py-1.5 text-xs bg-white text-gray-500 focus:outline-none">
+          <option value="recentes">Mais novos primeiro</option>
+          <option value="antigos">Mais antigos primeiro</option>
+        </select>
+
+        <select value={filterArea} onChange={(e) => setFilterModule(e.target.value)}
+          className="border border-[#E6E2D8] rounded-lg px-3 py-1.5 text-xs bg-white text-gray-500 focus:outline-none">
           <option value="">Todas as áreas</option>
           {AREAS.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
@@ -668,7 +693,12 @@ export default function Tasks() {
                       >
                         {/* Title row */}
                         <div className="flex items-start justify-between gap-1.5 mb-2">
-                          <p className="text-sm font-medium text-[#00704A] leading-tight flex-1">{task.title}</p>
+                          <p className="text-sm font-medium text-[#00704A] leading-tight flex-1">
+                            {task.number != null && (
+                              <span className="text-[10px] font-bold text-gray-400 mr-1">#{String(task.number).padStart(3, "0")}</span>
+                            )}
+                            {task.title}
+                          </p>
                           <button
                             onClick={(e) => cycleStatus(task, e)}
                             className={`shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition ${color}`}
@@ -742,8 +772,11 @@ export default function Tasks() {
           onClose={() => setSelected(null)}
           onUpdate={updateTask}
           onDelete={deleteTask}
+          onCelebrate={celebrateIfDone}
         />
       )}
+
+      <Celebration show={celebrate} onDone={() => setCelebrate(false)} />
     </AdminLayout>
   );
 }

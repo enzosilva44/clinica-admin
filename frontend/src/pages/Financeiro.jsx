@@ -4,6 +4,7 @@ import {
   TrendingUp, Users, DollarSign, BarChart2,
   ArrowUp, ArrowDown, Plus, Check, X, Clock,
   Trash2, AlertCircle, CreditCard, Building2, Receipt, RefreshCw, Calculator,
+  Handshake, CheckCircle2,
 } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import SecaoInfo from "../components/SecaoInfo";
@@ -33,7 +34,7 @@ const BILLING_STATUS = {
   isento:   { label: "Isento",   color: "bg-gray-100 text-gray-500"   },
 };
 
-const RECORRENCIA_LABELS = { mensal: "Mensal", quinzenal: "Quinzenal", semanal: "Semanal", anual: "Anual" };
+const RECORRENCIA_LABELS = { mensal: "Mensal", quinzenal: "Quinzenal", semanal: "Semanal", trimestral: "Trimestral", anual: "Anual" };
 
 const EMPTY_FORM = { type: "despesa", description: "", amount: "", category: "", dueDate: "", notes: "", recorrente: false, recorrencia: "mensal", recorrenciaFim: "" };
 
@@ -68,6 +69,33 @@ export default function Financeiro() {
   const [saving,   setSaving]   = useState(false);
   const [filterType,   setFilterType]   = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [concil,       setConcil]       = useState(null);
+  const [loadingC,     setLoadingC]     = useState(false);
+
+  async function loadConciliacao() {
+    setLoadingC(true);
+    try {
+      const r = await adminApi.get("/admin/financial/conciliacao");
+      setConcil(r.data);
+    } catch { toast.error("Erro ao carregar conciliação"); }
+    finally { setLoadingC(false); }
+  }
+  useEffect(() => { if (tab === "conciliacao" && !concil) loadConciliacao(); }, [tab]);
+
+  async function toggleSettled(entryId, settled) {
+    // otimista
+    setConcil((prev) => prev && ({
+      ...prev,
+      despesas: prev.despesas.map((d) => d.id === entryId ? { ...d, societySettled: settled } : d),
+    }));
+    try {
+      await adminApi.patch(`/admin/financial/entries/${entryId}/society`, { societySettled: settled });
+      loadConciliacao(); // recalcula resumo/rateio
+    } catch {
+      toast.error("Erro ao atualizar.");
+      loadConciliacao();
+    }
+  }
 
   // MRR stats
   useEffect(() => {
@@ -194,7 +222,7 @@ export default function Financeiro() {
       <SecaoInfo itens={[
         { nome: "Faturamento (MRR)", desc: "Receita mensal recorrente das clínicas pagantes, calculada por plano. Acompanha quem pagou e quanto deve entrar no mês." },
         { nome: "Extrato", desc: "Lançamentos de receitas e despesas com fluxo de aprovação: pendente → aprovado/rejeitado. Cada movimentação registra clínica, plano e método." },
-        { nome: "Despesas recorrentes", desc: "Cadastre despesas fixas (mensal, semanal, anual) que geram lançamentos automaticamente a cada período." },
+        { nome: "Despesas recorrentes", desc: "Cadastre despesas fixas (mensal, semanal, trimestral, anual) que geram lançamentos automaticamente a cada período." },
         { nome: "ARR", desc: "Receita anual — conta apenas contratos anuais efetivamente confirmados, não projeções." },
         { nome: "Planejamento Financeiro", desc: "Simulador de cenários: projeta receita, EBITDA e distribuição entre sócios conforme premissas editáveis." },
       ]} />
@@ -226,6 +254,7 @@ export default function Financeiro() {
           ["faturamento", <Building2   size={13} />, "Faturamento"],
           ["extrato",     <Receipt     size={13} />, `Extrato${pendingCount > 0 ? ` (${pendingCount})` : ""}`],
           ["recorrentes", <RefreshCw   size={13} />, `Recorrentes${recorrentes.length > 0 ? ` (${recorrentes.length})` : ""}`],
+          ["conciliacao", <Handshake   size={13} />, "Conciliação"],
           ["mrr",         <TrendingUp  size={13} />, "MRR / SaaS"],
         ].map(([key, icon, label]) => (
           <button
@@ -677,6 +706,96 @@ export default function Financeiro() {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: CONCILIAÇÃO DE SOCIEDADE ────────────────────────────────── */}
+      {tab === "conciliacao" && (
+        <div className="space-y-5">
+          {loadingC || !concil ? (
+            <div className="py-12 text-center text-gray-400 text-sm">Carregando…</div>
+          ) : (
+            <>
+              {/* Resumo caixa vs dívida */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: "Em caixa",        value: concil.resumo.caixa,             color: concil.resumo.caixa >= 0 ? "#00704A" : "#DC2626", sub: `${fmtBRL(concil.resumo.receitas)} rec. − ${fmtBRL(concil.resumo.despesasPagas)} desp.` },
+                  { label: "Dívidas em aberto", value: concil.resumo.totalDividaAberta, color: "#CBA258", sub: "despesas não acertadas" },
+                  { label: "Coberto pelo caixa", value: concil.resumo.cobertoPorCaixa,  color: "#00704A", sub: "abatido do caixa disponível" },
+                  { label: "Falta ratear",     value: concil.resumo.faltaRatear,       color: "#DC2626", sub: "a dividir entre os sócios" },
+                ].map(({ label, value, color, sub }) => (
+                  <div key={label} className="bg-white rounded-2xl p-5 border border-[#E6E2D8]">
+                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{label}</p>
+                    <p className="text-2xl font-black mt-1" style={{ color }}>{fmtBRL(value)}</p>
+                    <p className="text-[11px] text-gray-400 mt-1">{sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Rateio por sócio */}
+              <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#E6E2D8] bg-[#F2F0EB] flex items-center justify-between">
+                  <span className="text-sm font-bold text-[#00704A]">Rateio do que falta acertar</span>
+                  <span className="text-xs text-gray-400">total {fmtBRL(concil.resumo.faltaRatear)}</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[#F2F0EB]">
+                  {concil.porSocio.map((s) => (
+                    <div key={s.key} className="p-4 text-center">
+                      <p className="text-sm font-semibold text-gray-700">{s.name}</p>
+                      <p className="text-[11px] text-gray-400">{Math.round(s.share * 100)}%</p>
+                      <p className="text-xl font-black text-[#00704A] mt-1">{fmtBRL(s.devido)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Despesas: marcar acertado + rateio individual */}
+              <div className="bg-white border border-[#E6E2D8] rounded-2xl overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#E6E2D8] bg-[#F2F0EB]">
+                  <span className="text-sm font-bold text-[#00704A]">Despesas — acerto entre sócios</span>
+                </div>
+                {concil.despesas.length === 0 ? (
+                  <div className="py-12 text-center text-gray-400 text-sm">Nenhuma despesa registrada.</div>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#F2F0EB] text-xs text-gray-500 uppercase tracking-wide">
+                      <tr>
+                        <th className="text-left px-5 py-2.5">Despesa</th>
+                        <th className="text-right px-5 py-2.5">Valor</th>
+                        {concil.socios.map((s) => (
+                          <th key={s.key} className="text-right px-4 py-2.5 hidden md:table-cell">{s.name}</th>
+                        ))}
+                        <th className="text-center px-5 py-2.5">Acertado?</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {concil.despesas.map((d) => (
+                        <tr key={d.id} className={`border-t border-[#E6E2D8] ${d.societySettled ? "bg-[#F0F7F5]" : ""}`}>
+                          <td className="px-5 py-3">
+                            <p className="font-medium text-gray-800">{d.description}</p>
+                            {d.category && <p className="text-[11px] text-gray-400">{d.category}</p>}
+                          </td>
+                          <td className="px-5 py-3 text-right font-semibold text-gray-700">{fmtBRL(d.amount)}</td>
+                          {d.rateio.map((r) => (
+                            <td key={r.key} className="px-4 py-3 text-right text-gray-500 hidden md:table-cell">{fmtBRL(r.valor)}</td>
+                          ))}
+                          <td className="px-5 py-3 text-center">
+                            <button
+                              onClick={() => toggleSettled(d.id, !d.societySettled)}
+                              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition ${d.societySettled ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                            >
+                              <CheckCircle2 size={12} />
+                              {d.societySettled ? "Acertado" : "Marcar"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}

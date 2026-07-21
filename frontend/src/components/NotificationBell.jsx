@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, Check, CheckCheck } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Bell, CheckCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import adminApi from "../services/api";
 
@@ -14,8 +15,22 @@ function relTime(d) {
 export default function NotificationBell({ onTaskOpen }) {
   const [notifs,  setNotifs]  = useState([]);
   const [open,    setOpen]    = useState(false);
-  const ref = useRef();
+  const [pos,     setPos]     = useState({ left: 0, bottom: 0 });
+  const btnRef  = useRef();
+  const menuRef = useRef();
   const navigate = useNavigate();
+
+  // Ancora o menu (fixed) às coordenadas do sino, abrindo para cima e à direita.
+  function openMenu() {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) {
+      setPos({
+        left:   Math.round(r.left),
+        bottom: Math.round(window.innerHeight - r.top + 8),
+      });
+    }
+    setOpen(true);
+  }
 
   async function load() {
     try {
@@ -30,9 +45,13 @@ export default function NotificationBell({ onTaskOpen }) {
     return () => clearInterval(id);
   }, []);
 
-  // Close on outside click
+  // Close on outside click (considera o sino e o menu portaled)
   useEffect(() => {
-    function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    function handle(e) {
+      if (btnRef.current?.contains(e.target)) return;
+      if (menuRef.current?.contains(e.target)) return;
+      setOpen(false);
+    }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, []);
@@ -63,9 +82,10 @@ export default function NotificationBell({ onTaskOpen }) {
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={btnRef}
+        onClick={() => (open ? setOpen(false) : openMenu())}
         className="relative w-8 h-8 flex items-center justify-center rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition"
       >
         <Bell size={16} />
@@ -76,9 +96,12 @@ export default function NotificationBell({ onTaskOpen }) {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-2xl border border-[#E6E2D8] z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E6E2D8]">
+      {open && createPortal(
+        <div
+          ref={menuRef}
+          style={{ position: "fixed", left: pos.left, bottom: pos.bottom }}
+          className="w-80 max-h-[70vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-[#E6E2D8] z-[9999] overflow-hidden">
+          <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#E6E2D8]">
             <span className="text-sm font-bold text-[#00704A]">
               Notificações {unread > 0 && <span className="text-[#CBA258]">({unread})</span>}
             </span>
@@ -89,7 +112,7 @@ export default function NotificationBell({ onTaskOpen }) {
             )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-[#F2F0EB]">
+          <div className="flex-1 overflow-y-auto divide-y divide-[#F2F0EB]">
             {notifs.length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-8">Nenhuma notificação.</p>
             ) : (
@@ -114,7 +137,8 @@ export default function NotificationBell({ onTaskOpen }) {
               ))
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

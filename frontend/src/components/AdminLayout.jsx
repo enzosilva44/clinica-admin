@@ -1,12 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, CheckSquare, TrendingUp, HeartHandshake, Megaphone, LogOut } from "lucide-react";
+import { LayoutDashboard, Cpu, CheckSquare, TrendingUp, HeartHandshake, Megaphone, LogOut } from "lucide-react";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import NotificationBell from "./NotificationBell";
 import LogoMark from "./LogoMark";
 
 const NAV = [
-  { to: "/",          icon: LayoutDashboard, label: "Dashboard"  },
-  { to: "/tasks",     icon: CheckSquare,     label: "Tasks"       },
+  { to: "/",           icon: LayoutDashboard, label: "Dashboard"  },
+  { to: "/tecnologia", icon: Cpu,             label: "Tecnologia" },
+  { to: "/tasks",      icon: CheckSquare,     label: "Tasks"       },
   { to: "/financial", icon: TrendingUp,      label: "Financeiro"  },
   { to: "/cs",        icon: HeartHandshake,  label: "Customer Success" },
   { to: "/comercial", icon: Megaphone,       label: "Comercial"   },
