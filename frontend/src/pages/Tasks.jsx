@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 
 const PRIORITIES = ["alta", "media", "baixa"];
 const STATUSES   = ["backlog", "fila", "em_andamento", "pendente", "homologacao", "concluido"];
-const AREAS      = ["cs", "comercial", "financeiro", "tecnologia", "juridico", "interno"];
+const AREAS      = ["cs", "comercial", "marketing", "financeiro", "tecnologia", "juridico", "interno"];
 
 const PRIORITY_CFG = {
   alta:  { label: "Alta",  color: "bg-red-100 text-red-600"     },
@@ -34,6 +34,7 @@ const STATUS_CFG = {
 const AREA_COLORS = {
   cs:          "bg-purple-50 text-purple-600",
   comercial:   "bg-emerald-50 text-emerald-600",
+  marketing:   "bg-pink-50 text-pink-600",
   financeiro:  "bg-amber-50 text-amber-600",
   tecnologia:  "bg-blue-50 text-blue-600",
   juridico:    "bg-rose-50 text-rose-600",
@@ -529,7 +530,7 @@ export default function Tasks() {
         { nome: "Detalhe e timeline", desc: "Clique num card para abrir o painel com descrição, prazo, lembrete e o histórico de comentários da tarefa." },
         { nome: "@menções", desc: "Mencione um sócio com @ nos comentários ou na descrição — ele recebe uma notificação no sino." },
         { nome: "Prazo e lembrete", desc: "Defina data de entrega e um lembrete com hora; o card avisa quando vence e dispara notificação no navegador." },
-        { nome: "Áreas", desc: "Classifique por área (CS, Comercial, Financeiro, Tecnologia, Jurídico, Interno) e filtre por ela." },
+        { nome: "Áreas", desc: "Classifique por área (CS, Comercial, Marketing, Financeiro, Tecnologia, Jurídico, Interno) e filtre por ela." },
       ]} />
 
       {/* New task form */}
@@ -674,7 +675,7 @@ export default function Tasks() {
                   </div>
                   {sub && <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{sub}</p>}
                 </div>
-                <div className="p-3 space-y-2.5 min-h-32">
+                <div className="p-3 space-y-2.5 min-h-32 max-h-[calc(100vh-16rem)] overflow-y-auto">
                   {grouped[s].map((task) => {
                     const assignees    = task.assignees ?? [];
                     const overdue      = isOverdue(task.dueDate)    && task.status !== "concluido";
