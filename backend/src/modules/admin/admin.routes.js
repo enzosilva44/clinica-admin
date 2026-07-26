@@ -33,6 +33,7 @@ router.get("/audit",          (req, res) => forward(req, res, `/admin/audit?${ne
 router.get("/infra/metrics",  (req, res) => forward(req, res, "/admin/infra/metrics"));
 router.get("/infra/cost",     (req, res) => forward(req, res, "/admin/infra/cost"));
 router.get("/infra/backups",  (req, res) => forward(req, res, `/admin/infra/backups?${new URLSearchParams(req.query)}`));
+router.get("/usage",          (req, res) => forward(req, res, "/admin/usage"));
 
 // Team
 router.get("/team",         (req, res) => forward(req, res, "/admin/team"));

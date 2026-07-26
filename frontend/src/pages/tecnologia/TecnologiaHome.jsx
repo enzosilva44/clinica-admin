@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Building2, Activity, SlidersHorizontal, ScrollText, Cloud, ChevronRight } from "lucide-react";
+import { Building2, Activity, SlidersHorizontal, ScrollText, Cloud, Gauge, ChevronRight } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 
 const MODULES = [
@@ -23,6 +23,13 @@ const MODULES = [
     title: "Features / Planos",
     desc: "Funcionalidades liberadas por padrão em cada plano.",
     color: "#7C3AED",
+  },
+  {
+    to: "/tecnologia/cotas",
+    icon: Gauge,
+    title: "Cotas & Consumo",
+    desc: "Consumo de IA e WhatsApp por clínica no mês, com teto por plano e top-ups.",
+    color: "#00704A",
   },
   {
     to: "/tecnologia/logs",

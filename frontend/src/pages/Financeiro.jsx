@@ -19,7 +19,7 @@ const PLAN_COLORS_BAR  = { solo: "bg-gray-300", clinica: "bg-emerald-400", enter
 const PLAN_BADGE       = { solo: "bg-gray-100 text-gray-600", clinica: "bg-emerald-100 text-emerald-700", enterprise: "bg-amber-100 text-amber-700", dev: "bg-purple-100 text-purple-700" };
 const PLAN_MRR         = { solo: 97, clinica: 197, enterprise: 497, dev: 0 };
 
-const DESPESA_CATS = ["Infraestrutura", "Ferramentas", "Marketing", "Pessoal", "Jurídico", "Contabilidade", "Outros"];
+const DESPESA_CATS = ["Aquisição", "Infraestrutura", "Ferramentas", "Marketing", "Pessoal", "Jurídico", "Contabilidade", "Outros"];
 const RECEITA_CATS = ["Assinatura Solo", "Assinatura Clínica", "Assinatura Enterprise", "Consultoria", "Outros"];
 
 const STATUS_CFG = {

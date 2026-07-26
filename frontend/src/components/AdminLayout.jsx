@@ -1,11 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Cpu, CheckSquare, TrendingUp, HeartHandshake, Megaphone, LogOut } from "lucide-react";
+import { LayoutDashboard, BrainCircuit, Cpu, CheckSquare, TrendingUp, HeartHandshake, Megaphone, LogOut } from "lucide-react";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 import NotificationBell from "./NotificationBell";
 import LogoMark from "./LogoMark";
+import { isOwner } from "../config/owner";
 
 const NAV = [
   { to: "/",           icon: LayoutDashboard, label: "Dashboard"  },
+  { to: "/ios",        icon: BrainCircuit,    label: "IOS", ownerOnly: true },
   { to: "/tecnologia", icon: Cpu,             label: "Tecnologia" },
   { to: "/tasks",      icon: CheckSquare,     label: "Tasks"       },
   { to: "/financial", icon: TrendingUp,      label: "Financeiro"  },
@@ -32,7 +34,7 @@ export default function AdminLayout({ children }) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {NAV.map(({ to, icon: Icon, label }) => (
+          {NAV.filter((item) => !item.ownerOnly || isOwner(user)).map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
