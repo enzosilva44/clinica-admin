@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Building2, Activity, SlidersHorizontal, ScrollText, Cloud, Gauge, ChevronRight } from "lucide-react";
+import { Building2, Activity, SlidersHorizontal, ScrollText, Cloud, Gauge, DollarSign, ChevronRight } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 
 const MODULES = [
@@ -30,6 +30,13 @@ const MODULES = [
     title: "Cotas & Consumo",
     desc: "Consumo de IA e WhatsApp por clínica no mês, com teto por plano e top-ups.",
     color: "#00704A",
+  },
+  {
+    to: "/tecnologia/custo-whatsapp",
+    icon: DollarSign,
+    title: "Custo WhatsApp",
+    desc: "O que a Meta cobra pelas mensagens, por categoria e por clínica.",
+    color: "#CBA258",
   },
   {
     to: "/tecnologia/logs",

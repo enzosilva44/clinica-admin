@@ -9,6 +9,7 @@ import FeaturesPlanos from "../pages/tecnologia/FeaturesPlanos";
 import LogsAuditoria from "../pages/tecnologia/LogsAuditoria";
 import Infraestrutura from "../pages/tecnologia/Infraestrutura";
 import CotasConsumo from "../pages/tecnologia/CotasConsumo";
+import CustoWhatsApp from "../pages/tecnologia/CustoWhatsApp";
 import Tasks from "../pages/Tasks";
 import Financeiro from "../pages/Financeiro";
 import CustomerSuccess from "../pages/CustomerSuccess";
@@ -68,6 +69,7 @@ export default function AppRoutes() {
       <Route path="/tecnologia/logs"     element={<P><LogsAuditoria /></P>} />
       <Route path="/tecnologia/infra"    element={<P><Infraestrutura /></P>} />
       <Route path="/tecnologia/cotas"    element={<P><CotasConsumo /></P>} />
+      <Route path="/tecnologia/custo-whatsapp" element={<P><CustoWhatsApp /></P>} />
       <Route path="/tasks"      element={<P><Tasks /></P>} />
       <Route path="/financial" element={<P><Financeiro /></P>} />
       <Route path="/cs"        element={<P><CustomerSuccess /></P>} />

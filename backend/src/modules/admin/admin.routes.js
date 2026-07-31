@@ -34,6 +34,8 @@ router.get("/infra/metrics",  (req, res) => forward(req, res, "/admin/infra/metr
 router.get("/infra/cost",     (req, res) => forward(req, res, "/admin/infra/cost"));
 router.get("/infra/backups",  (req, res) => forward(req, res, `/admin/infra/backups?${new URLSearchParams(req.query)}`));
 router.get("/usage",          (req, res) => forward(req, res, "/admin/usage"));
+router.get("/whatsapp-cost",      (req, res) => forward(req, res, `/admin/whatsapp-cost?${new URLSearchParams(req.query)}`));
+router.post("/whatsapp-cost/sync", (req, res) => forward(req, res, "/admin/whatsapp-cost/sync", "POST"));
 
 // Team
 router.get("/team",         (req, res) => forward(req, res, "/admin/team"));
