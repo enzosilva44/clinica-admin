@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DollarSign, RefreshCw, AlertTriangle, CloudDownload, Megaphone, Wrench, Clock } from "lucide-react";
+import { DollarSign, RefreshCw, AlertTriangle, CloudDownload, Megaphone, Wrench, Clock, Coins } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 import adminApi from "../../services/api";
 import TecBreadcrumb from "./TecBreadcrumb";
@@ -30,6 +30,9 @@ function usd(n) {
 }
 function num(n) {
   return new Intl.NumberFormat("pt-BR").format(n ?? 0);
+}
+function brl(n) {
+  return (n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function Card({ icon: Icon, label, valor, sub, color = "#00704A" }) {
@@ -155,13 +158,28 @@ export default function CustoWhatsApp() {
       )}
 
       {/* Totais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
         <Card
           icon={DollarSign}
           label="Custo no período"
           valor={usd(t?.custoUsd)}
           sub="cobrado pela Meta em dólar"
         />
+
+        {/* Estimativa em reais — só aparece se a cotação veio. USD é o valor
+            de fato; isto é conveniência de leitura, não o que será faturado. */}
+        {data?.cambio && (
+          <Card
+            icon={Coins}
+            label="Estimativa em reais"
+            valor={brl(data.cambio.custoBrlEstimado)}
+            sub={
+              `≈ dólar a ${data.cambio.usdBrl.toLocaleString("pt-BR", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}` +
+              (data.cambio.expirada ? " · cotação pode estar defasada" : "")
+            }
+            color="#CBA258"
+          />
+        )}
         <Card
           icon={Wrench}
           label="Mensagens pagas"
@@ -181,6 +199,15 @@ export default function CustoWhatsApp() {
           <MiniChart series={serie} color="#00704A" height={56} />
         </div>
       </div>
+
+      {data?.cambio && (
+        <p className="text-[11px] text-gray-400 -mt-3 mb-6 leading-relaxed">
+          A Meta cobra em dólar. O valor em reais é estimativa pela cotação
+          comercial ({data.cambio.fonte}
+          {data.cambio.cotadoEm ? `, ${data.cambio.cotadoEm}` : ""}) e não inclui
+          spread nem IOF do cartão — a fatura final costuma ficar acima disso.
+        </p>
+      )}
 
       {/* Por categoria */}
       <div className="bg-white rounded-2xl border border-[#E6E2D8] overflow-hidden mb-6">
