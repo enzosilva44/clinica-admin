@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Building2, Activity, SlidersHorizontal, ScrollText, Cloud, Gauge, DollarSign, ChevronRight } from "lucide-react";
+import { Building2, Activity, SlidersHorizontal, ScrollText, Cloud, Gauge, DollarSign, Headset, ChevronRight } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 
 const MODULES = [
@@ -29,6 +29,13 @@ const MODULES = [
     icon: Gauge,
     title: "Cotas & Consumo",
     desc: "Consumo de IA e WhatsApp por clínica no mês, com teto por plano e top-ups.",
+    color: "#00704A",
+  },
+  {
+    to: "/tecnologia/suporte",
+    icon: Headset,
+    title: "Suporte (Central IASO)",
+    desc: "Chamados das clínicas pelo WhatsApp da central: filas, atendimento e notas internas.",
     color: "#00704A",
   },
   {
