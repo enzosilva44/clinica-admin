@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  RefreshCw, AlertTriangle, Inbox, Send, Lock, StickyNote,
+  RefreshCw, AlertTriangle, Inbox, Send, StickyNote,
   UserPlus, ArrowRightLeft, CheckCircle2, RotateCcw, Building2, Phone, Clock,
 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
@@ -89,6 +89,8 @@ export default function Suporte() {
   const [abertoId, setAbertoId] = useState(null);
   const [ticket, setTicket] = useState(null);
   const [nota, setNota] = useState("");
+  const [resposta, setResposta] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const [err, setErr] = useState(null);
   const [aviso, setAviso] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -153,6 +155,26 @@ export default function Suporte() {
     if (!texto) return;
     setNota("");
     await agir("notes", { text: texto });
+  }
+
+  // Resposta ao cliente: só limpa o campo se a Meta aceitou. Fora da janela de
+  // 24h o envio é recusado, e apagar o texto faria o atendente perder o que
+  // escreveu junto com a explicação do porquê.
+  async function enviarResposta(e) {
+    e.preventDefault();
+    const texto = resposta.trim();
+    if (!texto || enviando) return;
+    setEnviando(true);
+    try {
+      await adminApi.post(`/admin/support/tickets/${abertoId}/reply`, { text: texto });
+      setResposta("");
+      setErr(null);
+      await Promise.all([carregarLista(), abrir(abertoId)]);
+    } catch (e2) {
+      setErr(e2?.response?.data?.error || "Não foi possível enviar a mensagem.");
+    } finally {
+      setEnviando(false);
+    }
   }
 
   useEffect(() => { setLoading(true); carregarLista(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [aba, setor]);
@@ -439,18 +461,28 @@ export default function Suporte() {
                 <div ref={fimDaTimeline} />
               </div>
 
-              {/* Responder ao cliente depende do número da central estar
-                  registrado na Cloud API — enquanto não está, fica travado. */}
+              {/* Responder ao cliente pelo número da central. */}
               <div className="border-t border-[#E6E2D8] px-5 py-3 space-y-2">
-                <div className="flex items-center gap-2 bg-gray-50 border border-[#E6E2D8] rounded-xl px-3 py-2.5 opacity-70">
-                  <Lock size={13} className="text-gray-400 shrink-0" />
+                <form
+                  onSubmit={enviarResposta}
+                  className="flex items-center gap-2 bg-white border border-[#E6E2D8] rounded-xl px-3 py-2.5 focus-within:border-[#00704A] transition"
+                >
                   <input
-                    disabled
-                    placeholder="Responder ao cliente — disponível quando o número da central for registrado na Cloud API"
-                    className="flex-1 bg-transparent text-sm text-gray-400 outline-none cursor-not-allowed"
+                    value={resposta}
+                    onChange={(e) => setResposta(e.target.value)}
+                    disabled={enviando}
+                    placeholder="Responder ao cliente pelo WhatsApp"
+                    className="flex-1 bg-transparent text-sm outline-none disabled:opacity-50"
                   />
-                  <Send size={14} className="text-gray-300 shrink-0" />
-                </div>
+                  <button
+                    type="submit"
+                    disabled={!resposta.trim() || enviando}
+                    className="shrink-0 disabled:opacity-30 transition"
+                    title="Enviar"
+                  >
+                    <Send size={16} className={enviando ? "text-gray-300" : "text-[#00704A]"} />
+                  </button>
+                </form>
 
                 <form onSubmit={salvarNota} className="flex items-center gap-2">
                   <StickyNote size={13} className="text-[#CBA258] shrink-0" />
