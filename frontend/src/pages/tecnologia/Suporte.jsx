@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   RefreshCw, AlertTriangle, Inbox, Send, StickyNote,
   UserPlus, ArrowRightLeft, CheckCircle2, RotateCcw, Building2, Phone, Clock,
+  MessageSquarePlus, Lock, X,
 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 import adminApi from "../../services/api";
@@ -77,6 +78,246 @@ function Pill({ children, color = "#94A3B8" }) {
   );
 }
 
+// Estado da janela de 24h do WhatsApp, em português de atendente.
+//
+// A regra da Meta: texto livre só nas 24h seguintes à mensagem DO CLIENTE.
+// Enviar template não abre a janela — só a resposta dele abre. Por isso os três
+// estados abaixo são diferentes entre si: "ainda não respondeu" e "fechou" têm
+// a mesma consequência (só template), mas dizem coisas opostas sobre a conversa.
+function janelaInfo(window) {
+  if (!window) return null;
+  if (window.open) {
+    const fim = new Date(window.expiresAt);
+    const horas = Math.max(0, Math.round((fim - Date.now()) / 3600000));
+    return {
+      open: true,
+      color: "#00704A",
+      curto: `aberta até ${fim.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`,
+      titulo: `Janela aberta — restam cerca de ${horas}h`,
+      detalhe: "Você pode escrever livremente até esse horário.",
+    };
+  }
+  if (window.reason === "sem_resposta") {
+    return {
+      open: false,
+      color: "#CBA258",
+      curto: "aguardando resposta",
+      titulo: "Este contato ainda não respondeu",
+      detalhe:
+        "Enviar um modelo não abre a janela de 24h — só a resposta dele abre. Até lá, o WhatsApp recusa mensagem escrita à mão.",
+    };
+  }
+  return {
+    open: false,
+    color: "#94A3B8",
+    curto: "fechada — precisa de modelo",
+    titulo: "A janela de 24h fechou",
+    detalhe:
+      "Passaram-se mais de 24h desde a última mensagem do contato. Para reabrir a conversa é preciso enviar um modelo aprovado.",
+  };
+}
+
+// Nós ligando para o cliente. Só modelo aprovado: quem nunca nos escreveu está,
+// por definição, fora da janela de 24h.
+function ModalNovaConversa({ templates, onFechar, onCriada }) {
+  const [phone, setPhone] = useState("");
+  const [waName, setWaName] = useState("");
+  const [templateName, setTemplateName] = useState(templates[0]?.name ?? "");
+  const [values, setValues] = useState({});
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState(null);
+
+  const template = templates.find((t) => t.name === templateName) ?? null;
+
+  // Prévia com o que já foi digitado: o atendente vê a mensagem como ela vai
+  // chegar, e não o template cru com {{1}} no meio.
+  const previa = useMemo(() => {
+    if (!template) return "";
+    let txt = template.preview ?? "";
+    (template.fields ?? []).forEach((f, i) => {
+      const v = String(values[f.key] ?? "").trim();
+      txt = txt.replaceAll(`{{${i + 1}}}`, v || `[${f.label.toLowerCase()}]`);
+    });
+    return txt;
+  }, [template, values]);
+
+  async function enviar(e) {
+    e.preventDefault();
+    if (enviando) return;
+    setEnviando(true);
+    setErro(null);
+    try {
+      const { data } = await adminApi.post("/admin/support/conversations", {
+        phone, waName: waName.trim() || undefined, templateName, values,
+      });
+      onCriada(data.ticketId);
+    } catch (e2) {
+      const resp = e2?.response?.data;
+      // 409: já existe conversa viva com esse contato — em vez de erro seco,
+      // levamos o atendente até ela.
+      if (e2?.response?.status === 409 && resp?.ticketId) {
+        onCriada(resp.ticketId);
+        return;
+      }
+      setErro(resp?.error || "Não foi possível iniciar a conversa.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-[#E6E2D8] w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#E6E2D8]">
+          <div>
+            <div className="font-semibold text-gray-800">Nova conversa</div>
+            <div className="text-[11px] text-gray-400">
+              A central escreve primeiro, pelo WhatsApp da IASO.
+            </div>
+          </div>
+          <button onClick={onFechar} className="text-gray-400 hover:text-gray-600 transition">
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={enviar} className="px-5 py-4 space-y-4">
+          {erro && (
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-3 py-2.5 text-xs flex items-start gap-2">
+              <AlertTriangle size={14} className="shrink-0 mt-px" /> {erro}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-[11px] font-semibold text-gray-500">WhatsApp *</span>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(16) 99161-2272"
+                required
+                className="mt-1 w-full text-sm border border-[#E6E2D8] rounded-xl px-3 py-2 outline-none focus:border-[#00704A] transition"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold text-gray-500">Nome do contato</span>
+              <input
+                value={waName}
+                onChange={(e) => setWaName(e.target.value)}
+                placeholder="Como aparece na sua lista"
+                className="mt-1 w-full text-sm border border-[#E6E2D8] rounded-xl px-3 py-2 outline-none focus:border-[#00704A] transition"
+              />
+            </label>
+          </div>
+
+          <label className="block">
+            <span className="text-[11px] font-semibold text-gray-500">Modelo de mensagem *</span>
+            <select
+              value={templateName}
+              onChange={(e) => { setTemplateName(e.target.value); setValues({}); }}
+              className="mt-1 w-full text-sm border border-[#E6E2D8] rounded-xl px-3 py-2 outline-none focus:border-[#00704A] transition bg-white"
+            >
+              {templates.map((t) => (
+                <option key={t.name} value={t.name}>
+                  {t.label}{t.status !== "APPROVED" ? " — em análise" : ""}
+                </option>
+              ))}
+            </select>
+            {template?.description && (
+              <span className="text-[11px] text-gray-400 mt-1 block">{template.description}</span>
+            )}
+          </label>
+
+          {/* Modelo ainda não aprovado: avisa aqui em vez de deixar o atendente
+              escrever tudo e tomar o erro da Meta no clique final. */}
+          {template && template.status !== "APPROVED" && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11px] text-amber-800 flex items-start gap-2">
+              <Clock size={13} className="shrink-0 mt-px" />
+              <span>
+                {template.status === "REJECTED"
+                  ? "Este modelo foi reprovado pela Meta e precisa ser reescrito antes de poder ser usado."
+                  : "Este modelo ainda está em análise pela Meta. O envio fica bloqueado até a aprovação sair — nada precisa ser refeito aqui depois."}
+              </span>
+            </div>
+          )}
+
+          {/* Campos vindos do catálogo do backend: template novo aparece aqui
+              sozinho, sem mexer nesta tela. */}
+          {(template?.fields ?? []).map((f) => (
+            <label key={f.key} className="block">
+              <span className="text-[11px] font-semibold text-gray-500">
+                {f.label}{f.required && " *"}
+              </span>
+              {f.multiline ? (
+                <textarea
+                  value={values[f.key] ?? ""}
+                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                  required={f.required}
+                  maxLength={f.maxLength}
+                  rows={3}
+                  className="mt-1 w-full text-sm border border-[#E6E2D8] rounded-xl px-3 py-2 outline-none focus:border-[#00704A] transition resize-none"
+                />
+              ) : (
+                <input
+                  value={values[f.key] ?? ""}
+                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                  required={f.required}
+                  maxLength={f.maxLength}
+                  className="mt-1 w-full text-sm border border-[#E6E2D8] rounded-xl px-3 py-2 outline-none focus:border-[#00704A] transition"
+                />
+              )}
+              {f.hint && <span className="text-[11px] text-gray-400 mt-1 block">{f.hint}</span>}
+            </label>
+          ))}
+
+          {previa && (
+            <div>
+              <div className="text-[11px] font-semibold text-gray-500 mb-1.5">
+                Como vai chegar
+              </div>
+              <div className="bg-[#00704A] text-white rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap">
+                {previa}
+              </div>
+            </div>
+          )}
+
+          {/* O aviso que evita a pergunta "mandei e não consigo responder?". */}
+          <div className="bg-[#FDF6E3] border border-[#E9DDBF] rounded-xl px-3 py-2.5 text-[11px] text-[#6B5426] flex items-start gap-2">
+            <Lock size={13} className="shrink-0 mt-px" />
+            <span>
+              Depois de enviar, a caixa de resposta fica bloqueada até a pessoa
+              responder — o WhatsApp só libera texto livre a partir da resposta dela.
+            </span>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onFechar}
+              className="text-xs font-semibold px-3 py-2 rounded-xl border border-[#E6E2D8] text-gray-600 hover:border-gray-300 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={enviando || !phone.trim() || !template || template.status !== "APPROVED"}
+              title={
+                template && template.status !== "APPROVED"
+                  ? "Modelo ainda não aprovado pela Meta"
+                  : undefined
+              }
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-[#00704A] text-white hover:opacity-90 transition disabled:opacity-40"
+            >
+              <Send size={13} /> {enviando ? "Enviando…" : "Enviar e abrir conversa"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Suporte() {
   const { adminUser } = useAdminAuth();
   const [overview, setOverview] = useState(null);
@@ -94,6 +335,8 @@ export default function Suporte() {
   const [err, setErr] = useState(null);
   const [aviso, setAviso] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState([]);
+  const [novaConversa, setNovaConversa] = useState(false);
   const fimDaTimeline = useRef(null);
 
   async function carregarLista() {
@@ -179,6 +422,14 @@ export default function Suporte() {
 
   useEffect(() => { setLoading(true); carregarLista(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [aba, setor]);
 
+  // Catálogo de modelos: uma vez só, é lista estática do backend. Sem ele o
+  // botão de nova conversa não tem o que oferecer, então some da tela.
+  useEffect(() => {
+    adminApi.get("/admin/support/templates")
+      .then(({ data }) => setTemplates(Array.isArray(data) ? data : []))
+      .catch(() => setTemplates([]));
+  }, []);
+
   // Polling: mantém filas e conversa aberta frescas sem recarregar a página.
   useEffect(() => {
     const t = setInterval(() => {
@@ -221,7 +472,15 @@ export default function Suporte() {
         subtitle="Chamados das clínicas que chegam pelo WhatsApp da central, e quem está atendendo cada um."
       />
 
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end gap-2 mb-4">
+        {templates.length > 0 && (
+          <button
+            onClick={() => setNovaConversa(true)}
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl bg-[#00704A] text-white hover:opacity-90 transition"
+          >
+            <MessageSquarePlus size={13} /> Nova conversa
+          </button>
+        )}
         <button
           onClick={() => { setLoading(true); carregarLista(); }}
           disabled={loading}
@@ -230,6 +489,18 @@ export default function Suporte() {
           <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Atualizar
         </button>
       </div>
+
+      {novaConversa && (
+        <ModalNovaConversa
+          templates={templates}
+          onFechar={() => setNovaConversa(false)}
+          onCriada={async (ticketId) => {
+            setNovaConversa(false);
+            await carregarLista();
+            abrir(ticketId); // já cai dentro da conversa recém-criada
+          }}
+        />
+      )}
 
       {err && (
         <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-5 py-4 text-sm flex items-center gap-2 mb-4">
@@ -364,6 +635,14 @@ export default function Suporte() {
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className="text-[10px] text-gray-300">#{t.number}</span>
                       {info && <Pill color={info.color}>{info.label}</Pill>}
+                      {/* Janela fechada some da lista: o normal é estar aberta,
+                          e marcar todas poluiria. O que precisa saltar aos
+                          olhos é a conversa em que NÃO dá para escrever. */}
+                      {(() => {
+                        const j = janelaInfo(t.window);
+                        if (!j || j.open) return null;
+                        return <Pill color={j.color}>{j.curto}</Pill>;
+                      })()}
                       {t.department?.name && (
                         <span className="text-[10px] text-gray-400 truncate">{t.department.name}</span>
                       )}
@@ -389,8 +668,17 @@ export default function Suporte() {
                   <div className="font-semibold text-gray-800 truncate">
                     {ticket.contact?.name || ticket.contact?.waName || telefoneBonito(ticket.contact?.phone)}
                   </div>
-                  <div className="text-[11px] text-gray-400">
-                    #{ticket.number} · {ticket.department?.name ?? "sem departamento"}
+                  <div className="text-[11px] text-gray-400 flex items-center gap-1.5">
+                    <span>#{ticket.number} · {ticket.department?.name ?? "sem departamento"}</span>
+                    {(() => {
+                      const j = janelaInfo(ticket.window);
+                      if (!j) return null;
+                      return (
+                        <span title={`${j.titulo}. ${j.detalhe}`}>
+                          <Pill color={j.color}>{j.curto}</Pill>
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -453,6 +741,9 @@ export default function Suporte() {
                         <div className={`text-[10px] mt-1 ${meu ? "text-white/70" : "text-gray-400"}`}>
                           {horaCurta(m.createdAt)}
                           {m.authorKind === "automation" && " · automático"}
+                          {/* Modelo aprovado não é o atendente escrevendo: marcar
+                              explica por que o texto tem cara de padrão. */}
+                          {m.kind === "template" && " · modelo"}
                         </div>
                       </div>
                     </div>
@@ -461,28 +752,47 @@ export default function Suporte() {
                 <div ref={fimDaTimeline} />
               </div>
 
-              {/* Responder ao cliente pelo número da central. */}
+              {/* Responder ao cliente pelo número da central.
+                  Com a janela fechada a caixa dá lugar ao aviso: deixá-la
+                  disponível só faria o atendente escrever para descobrir no
+                  envio que a Meta recusou. */}
               <div className="border-t border-[#E6E2D8] px-5 py-3 space-y-2">
-                <form
-                  onSubmit={enviarResposta}
-                  className="flex items-center gap-2 bg-white border border-[#E6E2D8] rounded-xl px-3 py-2.5 focus-within:border-[#00704A] transition"
-                >
-                  <input
-                    value={resposta}
-                    onChange={(e) => setResposta(e.target.value)}
-                    disabled={enviando}
-                    placeholder="Responder ao cliente pelo WhatsApp"
-                    className="flex-1 bg-transparent text-sm outline-none disabled:opacity-50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!resposta.trim() || enviando}
-                    className="shrink-0 disabled:opacity-30 transition"
-                    title="Enviar"
-                  >
-                    <Send size={16} className={enviando ? "text-gray-300" : "text-[#00704A]"} />
-                  </button>
-                </form>
+                {(() => {
+                  const j = janelaInfo(ticket.window);
+                  if (j && !j.open) {
+                    return (
+                      <div className="bg-[#FDF6E3] border border-[#E9DDBF] rounded-xl px-3.5 py-3 flex items-start gap-2.5">
+                        <Lock size={14} className="text-[#8A6D3B] shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold text-[#8A6D3B]">{j.titulo}</div>
+                          <div className="text-[11px] text-[#6B5426] mt-0.5">{j.detalhe}</div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <form
+                      onSubmit={enviarResposta}
+                      className="flex items-center gap-2 bg-white border border-[#E6E2D8] rounded-xl px-3 py-2.5 focus-within:border-[#00704A] transition"
+                    >
+                      <input
+                        value={resposta}
+                        onChange={(e) => setResposta(e.target.value)}
+                        disabled={enviando}
+                        placeholder="Responder ao cliente pelo WhatsApp"
+                        className="flex-1 bg-transparent text-sm outline-none disabled:opacity-50"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!resposta.trim() || enviando}
+                        className="shrink-0 disabled:opacity-30 transition"
+                        title="Enviar"
+                      >
+                        <Send size={16} className={enviando ? "text-gray-300" : "text-[#00704A]"} />
+                      </button>
+                    </form>
+                  );
+                })()}
 
                 <form onSubmit={salvarNota} className="flex items-center gap-2">
                   <StickyNote size={13} className="text-[#CBA258] shrink-0" />
