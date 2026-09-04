@@ -352,14 +352,10 @@ export default function Financeiro() {
                           {c.paymentMethod ? (
                             <div className="flex items-center gap-1.5">
                               <CreditCard size={13} className="text-gray-400 shrink-0" />
-                              <div>
-                                <p className="text-xs font-medium text-gray-700">{c.paymentMethod}</p>
-                                {c.cardHolderName && <p className="text-[10px] text-gray-400 truncate max-w-28">{c.cardHolderName}</p>}
-                                {c.cardExpiry    && <p className="text-[10px] text-gray-400">vence {c.cardExpiry}</p>}
-                              </div>
+                              <p className="text-xs font-medium text-gray-700">{c.paymentMethod}</p>
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-300">Não cadastrado</span>
+                            <span className="text-xs text-gray-300">—</span>
                           )}
                         </td>
                         <td className="px-5 py-3.5 text-xs text-gray-400">{fmtDate(c.since)}</td>
