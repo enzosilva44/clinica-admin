@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   RefreshCw, AlertTriangle, Inbox, Send, StickyNote,
   UserPlus, ArrowRightLeft, CheckCircle2, RotateCcw, Building2, Phone, Clock,
-  MessageSquarePlus, Lock, X,
+  MessageSquarePlus, Lock, X, FileText,
 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 import adminApi from "../../services/api";
@@ -75,6 +75,140 @@ function Pill({ children, color = "#94A3B8" }) {
     >
       {children}
     </span>
+  );
+}
+
+// Descrição do anexo quando não dá para exibi-lo (download falhou, tipo que não
+// renderiza). Vale para o corpo da bolha e para a lista de conversas.
+function resumoSemTexto(kind) {
+  switch (kind) {
+    case "image":
+    case "sticker":  return "📷 Foto";
+    case "document": return "📄 Documento";
+    case "audio":    return "🎤 Áudio";
+    case "video":    return "🎬 Vídeo";
+    case "location": return "📍 Localização";
+    case "contacts": return "👤 Contato";
+    default:         return `[${kind || "mensagem"}]`;
+  }
+}
+
+function tamanhoBonito(bytes) {
+  if (!bytes) return null;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// Anexo de uma mensagem.
+//
+// O arquivo vive num bucket privado e a rota que o serve exige o token do
+// atendente no header Authorization — o que <img src> não manda. Por isso o
+// binário é buscado pelo adminApi e vira uma blob: URL local.
+//
+// A URL é revogada ao desmontar: sem isso, cada ticket aberto deixaria os
+// anexos presos na memória da aba pelo resto da sessão.
+function Anexo({ m, meu }) {
+  const [src, setSrc] = useState(null);
+  const [erro, setErro] = useState(false);
+  const [tamanho, setTamanho] = useState(null);
+
+  const ehImagem = (m.mediaMimeType || "").startsWith("image/");
+  const ehAudio  = (m.mediaMimeType || "").startsWith("audio/");
+  const ehVideo  = (m.mediaMimeType || "").startsWith("video/");
+  // Documento baixa em vez de tocar na página, então não precisa do blob.
+  const precisaCarregar = ehImagem || ehAudio || ehVideo;
+
+  useEffect(() => {
+    if (!m.mediaUrl || !precisaCarregar) return;
+    let url = null;
+    let vivo = true;
+
+    adminApi
+      .get(`/admin/support/messages/${m.id}/media`, { responseType: "blob" })
+      .then((res) => {
+        if (!vivo) return;
+        url = URL.createObjectURL(res.data);
+        setTamanho(res.data.size);
+        setSrc(url);
+      })
+      .catch(() => vivo && setErro(true));
+
+    return () => {
+      vivo = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [m.id, m.mediaUrl, precisaCarregar]);
+
+  if (!m.mediaUrl) return null;
+
+  // Anexo que não carregou não pode sumir em silêncio: o atendente precisa
+  // saber que veio um arquivo, mesmo sem conseguir vê-lo.
+  if (erro) {
+    return (
+      <div className={`text-xs rounded-xl px-3 py-2 mb-1.5 ${meu ? "bg-white/15" : "bg-gray-200/70"}`}>
+        {resumoSemTexto(m.kind)} · não foi possível carregar
+      </div>
+    );
+  }
+
+  const baixar = async () => {
+    try {
+      const res = await adminApi.get(`/admin/support/messages/${m.id}/media`, { responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = m.mediaFilename || "anexo";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setErro(true);
+    }
+  };
+
+  if (ehImagem) {
+    if (!src) {
+      return <div className={`h-40 w-52 rounded-xl mb-1.5 animate-pulse ${meu ? "bg-white/20" : "bg-gray-200"}`} />;
+    }
+    return (
+      <button onClick={baixar} className="block mb-1.5 cursor-zoom-in" title="Baixar imagem">
+        <img
+          src={src}
+          alt={m.mediaFilename || "Imagem enviada pelo cliente"}
+          className="rounded-xl max-h-72 max-w-full object-contain"
+        />
+      </button>
+    );
+  }
+
+  if (ehAudio) {
+    return src
+      ? <audio controls src={src} className="mb-1.5 max-w-full" />
+      : <div className={`h-10 w-52 rounded-xl mb-1.5 animate-pulse ${meu ? "bg-white/20" : "bg-gray-200"}`} />;
+  }
+
+  if (ehVideo) {
+    return src
+      ? <video controls src={src} className="rounded-xl mb-1.5 max-h-72 max-w-full" />
+      : <div className={`h-40 w-52 rounded-xl mb-1.5 animate-pulse ${meu ? "bg-white/20" : "bg-gray-200"}`} />;
+  }
+
+  // Documento e qualquer outro tipo: cartão clicável com nome e tamanho.
+  return (
+    <button
+      onClick={baixar}
+      className={`flex items-center gap-2 rounded-xl px-3 py-2 mb-1.5 w-full text-left transition ${
+        meu ? "bg-white/15 hover:bg-white/25" : "bg-gray-200/70 hover:bg-gray-200"
+      }`}
+    >
+      <FileText size={16} className="shrink-0" />
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold truncate">{m.mediaFilename || "Documento"}</span>
+        <span className={`block text-[10px] ${meu ? "text-white/70" : "text-gray-500"}`}>
+          {tamanhoBonito(tamanho) ? `${tamanhoBonito(tamanho)} · ` : ""}Baixar
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -737,7 +871,13 @@ export default function Suporte() {
                           meu ? "bg-[#00704A] text-white" : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        <div className="text-sm whitespace-pre-wrap">{m.text || `[${m.kind}]`}</div>
+                        <Anexo m={m} meu={meu} />
+                        {m.text && (
+                          <div className="text-sm whitespace-pre-wrap">{m.text}</div>
+                        )}
+                        {!m.text && !m.mediaUrl && (
+                          <div className="text-sm whitespace-pre-wrap">{resumoSemTexto(m.kind)}</div>
+                        )}
                         <div className={`text-[10px] mt-1 ${meu ? "text-white/70" : "text-gray-400"}`}>
                           {horaCurta(m.createdAt)}
                           {m.authorKind === "automation" && " · automático"}
