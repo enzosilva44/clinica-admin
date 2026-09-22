@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   RefreshCw, AlertTriangle, Inbox, Send, StickyNote,
   UserPlus, ArrowRightLeft, CheckCircle2, RotateCcw, Building2, Phone, Clock,
-  MessageSquarePlus, Lock, X, FileText,
+  MessageSquarePlus, Lock, X, FileText, ZoomIn, ZoomOut, Download,
 } from "lucide-react";
 import AdminLayout from "../../components/AdminLayout";
 import adminApi from "../../services/api";
@@ -100,6 +100,83 @@ function tamanhoBonito(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// Imagem aberta em tela cheia. O atendente precisa LER o que o cliente mandou
+// — print de erro, foto de boleto, documento fotografado — e a miniatura da
+// bolha não serve para isso.
+//
+// Abre no tamanho natural e amplia sob demanda: a foto de celular já chega
+// maior que a tela, então começar ajustado é o que deixa a imagem inteira
+// visível. O zoom é para detalhe (número de boleto, texto pequeno).
+function Lightbox({ src, alt, filename, onFechar, onBaixar }) {
+  const [ampliado, setAmpliado] = useState(false);
+
+  // Esc fecha: é o reflexo de quem usa um visualizador de imagem.
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onFechar();
+    window.addEventListener("keydown", onKey);
+    // Trava o scroll do fundo enquanto o visualizador está aberto.
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [onFechar]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/80 flex flex-col"
+      // Clique no fundo fecha; clique na imagem alterna o zoom, por isso o
+      // stopPropagation lá embaixo.
+      onClick={onFechar}
+    >
+      <div
+        className="flex items-center justify-between gap-3 px-4 py-3 text-white/90 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="text-xs truncate">{filename || "Imagem"}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => setAmpliado((v) => !v)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition"
+            title={ampliado ? "Ajustar à tela" : "Ampliar"}
+          >
+            {ampliado ? <ZoomOut size={14} /> : <ZoomIn size={14} />}
+            {ampliado ? "Ajustar" : "Ampliar"}
+          </button>
+          <button
+            onClick={onBaixar}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition"
+            title="Baixar imagem"
+          >
+            <Download size={14} /> Baixar
+          </button>
+          <button
+            onClick={onFechar}
+            className="inline-flex items-center justify-center p-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition"
+            title="Fechar (Esc)"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className={`flex-1 min-h-0 flex ${ampliado ? "overflow-auto" : "items-center justify-center overflow-hidden"} px-4 pb-4`}>
+        <img
+          src={src}
+          alt={alt}
+          onClick={(e) => { e.stopPropagation(); setAmpliado((v) => !v); }}
+          className={
+            ampliado
+              ? "max-w-none cursor-zoom-out"      // tamanho natural, rola na caixa
+              : "max-h-full max-w-full object-contain cursor-zoom-in m-auto"
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
 // Anexo de uma mensagem.
 //
 // O arquivo vive num bucket privado e a rota que o serve exige o token do
@@ -112,6 +189,7 @@ function Anexo({ m, meu }) {
   const [src, setSrc] = useState(null);
   const [erro, setErro] = useState(false);
   const [tamanho, setTamanho] = useState(null);
+  const [aberta, setAberta] = useState(false);
 
   const ehImagem = (m.mediaMimeType || "").startsWith("image/");
   const ehAudio  = (m.mediaMimeType || "").startsWith("audio/");
@@ -153,14 +231,21 @@ function Anexo({ m, meu }) {
   }
 
   const baixar = async () => {
-    try {
-      const res = await adminApi.get(`/admin/support/messages/${m.id}/media`, { responseType: "blob" });
-      const url = URL.createObjectURL(res.data);
+    const salvar = (href, revogar) => {
       const a = document.createElement("a");
-      a.href = url;
+      a.href = href;
       a.download = m.mediaFilename || "anexo";
       a.click();
-      URL.revokeObjectURL(url);
+      if (revogar) URL.revokeObjectURL(href);
+    };
+
+    // Imagem, áudio e vídeo já estão em memória: baixar de novo seria uma
+    // segunda viagem à EC2 pelo mesmo arquivo.
+    if (src) return salvar(src, false);
+
+    try {
+      const res = await adminApi.get(`/admin/support/messages/${m.id}/media`, { responseType: "blob" });
+      salvar(URL.createObjectURL(res.data), true);
     } catch {
       setErro(true);
     }
@@ -170,14 +255,26 @@ function Anexo({ m, meu }) {
     if (!src) {
       return <div className={`h-40 w-52 rounded-xl mb-1.5 animate-pulse ${meu ? "bg-white/20" : "bg-gray-200"}`} />;
     }
+    const alt = m.mediaFilename || "Imagem enviada pelo cliente";
     return (
-      <button onClick={baixar} className="block mb-1.5 cursor-zoom-in" title="Baixar imagem">
-        <img
-          src={src}
-          alt={m.mediaFilename || "Imagem enviada pelo cliente"}
-          className="rounded-xl max-h-72 max-w-full object-contain"
-        />
-      </button>
+      <>
+        <button
+          onClick={() => setAberta(true)}
+          className="block mb-1.5 cursor-zoom-in"
+          title="Abrir imagem"
+        >
+          <img src={src} alt={alt} className="rounded-xl max-h-72 max-w-full object-contain" />
+        </button>
+        {aberta && (
+          <Lightbox
+            src={src}
+            alt={alt}
+            filename={m.mediaFilename}
+            onFechar={() => setAberta(false)}
+            onBaixar={baixar}
+          />
+        )}
+      </>
     );
   }
 
